@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Castoro&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&display=swap');
+
+
+/*Début*/
+body, html {
+  margin: 0;
+  #padding: 0;
+  #height: 100%;
+  font-family : 'Poppins', sans-serif;
+  background-color: #F4F2EE;
+  color: #333;
+  overflow: hidden;
+}
+
+header {
+	font-family: 'Poppins', sans-serif;
+	font-weight: 700;
+	font-style: normal;
+	font-size: 25px;
+}
+.menu {
+	position: absolute;
+	flex-direction: column;
+    align-items: center;
+	#display: flex;
+	#flex-direction: column;
+	#justify-content: center;
+	#align-items: center;
+	color: #333;
+}
+
+.menu {
+  display: flex;
+  justify-content: center;
+}
+
+.menu ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.menu ul li {
+  display: inline-block;
+  margin: 0 20px;
+}
+
+.menu ul li a {
+  text-decoration: none;
+  color: #333;
+}
+
+.menu ul li a:hover {
+    color: lightgrey;
+}
+
+.container {
+	position:relative;
+	margin-top: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #333;
+}
+
+.Profilepic {
+    text-align: center;
+}
+
+.Profilepic h1 {
+    margin-bottom: 2.5px;
+}
+
+.Profilepic img:hover{
+	opacity:0;
+}
+
+.resume {
+	opacity: 0%;
+	position: absolute;
+	top: 41%;
+	left:48.5%;
+}
+
+.Profilepic img:hover + .resume {
+    opacity: 100%;
+}
+.legends {
+	font-family: "Monsieur La Doulaise", cursive;
+	font-weight: 500;
+	font-style: normal;
+	font-size: 35px;
+	user-select: none;
+	text-align: center;
+}
+
+.presentation {
+    text-align: center;
+}
+
+.social-media{
+	margin-top:20px;
+	
+	font-weight: 500;
+	text-align: center;
+}
+
+.social-media a{
+	color: #333;
+	text-decoration: none;
+}
+
+.resume a {
+	color: #333;
+	font-size:25px;
+	text-decoration: none;
+	font-weight: bold;
+}
+
+
+
+.legends {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 20px;
+        color: #333;
+        text-align: center;
+    }
+	
+/* Sélection en BW */
+body::
+-moz-selection { background: #333; }
+::selection { color: white; 
+background: #333;; }
+}
+

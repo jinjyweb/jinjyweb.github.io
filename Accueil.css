@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&display=swap');
+
+/*Début*/
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Poppins', sans-serif;
+  background-color: #F4F2EE;
+}
+
+/* Add a container for centering */
+.container {
+  display: flex;
+  flex-direction: column;
+  #justify-content: center;
+  align-items: center;
+  #height: 75%;
+}
+
+.welcome {
+	margin-top: 200px;
+  margin-bottom: -50px; /* Adjust this value to reduce the space */
+  font-family: "Monsieur La Doulaise", cursive;
+  font-weight: 500;
+  font-style: normal;
+  font-size: 35px;
+  margin-left: auto;
+    margin-right: auto;
+user-select: none;
+
+}
+
+.menu {
+  color: #333;
+}
+
+.menu ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.menu ul li {
+  display: inline-block;
+  margin: 0 25px;
+}
+
+.menu ul li a {
+  text-decoration: none;
+  color: #333;
+}
+
+.menu ul li a:hover {
+  color: lightgrey;
+}
+
+header {
+  font-weight: 700;
+  font-style: normal;
+  font-size: 25px;
+}
+
+/* Sélection en BW */
+body:: -moz-selection {
+  background: #333;
+}
+
+::selection {
+  color: white;
+  background: #333;
+}
