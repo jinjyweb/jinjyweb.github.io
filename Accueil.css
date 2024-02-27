@@ -10,7 +10,6 @@ html {
   background-color: #F4F2EE;
 }
 
-/* Add a container for centering */
 .container {
   display: flex;
   flex-direction: column;
@@ -21,7 +20,7 @@ html {
 
 .welcome {
 	margin-top: 200px;
-  margin-bottom: -50px; /* Adjust this value to reduce the space */
+  margin-bottom: -60px; 
   font-family: "Monsieur La Doulaise", cursive;
   font-weight: 500;
   font-style: normal;
@@ -29,11 +28,13 @@ html {
   margin-left: auto;
     margin-right: auto;
 user-select: none;
-
+    z-index: 1;
 }
 
 .menu {
   color: #333;
+  	font-weight: 700;
+
 }
 
 .menu ul {
@@ -58,7 +59,7 @@ user-select: none;
 header {
   font-weight: 700;
   font-style: normal;
-  font-size: 25px;
+  font-size: 30px;
 }
 
 /* Sélection en BW */

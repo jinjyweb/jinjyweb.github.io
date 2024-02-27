@@ -6,7 +6,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Castoro&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Crafty+Girls&family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
 /*Début*/
 body, html {
@@ -25,6 +25,7 @@ header {
 	font-style: normal;
 	font-size: 25px;
 }
+
 .menu {
     position: absolute;
     top: 0;
@@ -57,90 +58,18 @@ header {
     color: lightgrey;
 }
 
-.container {
-	position:relative;
-	margin-top: 10%;
+.wip {
+	font-family: "Roboto Mono", cursive;
+    position: relative;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    color: #333;
-}
-
-.Profilepic {
-    text-align: center;
-	display: inline-block;
-    height: 275px;
-}
-
-.Profilepic h1 {
-    margin-bottom: 2.5px;
-}
-
-.resume {
-	position: absolute;
-	top: 37%;
-	left:46.5%;
-	display: none;
-}
-
-.resume a {
-    color: #cfcfcf;
-    text-decoration: none;
-	background: #000000;
-
-}
-
-.presentation {
-    text-align: center;
-
-}
-
-.presentation a {
-	color : #333;
-	#font-weight: bold;
-	text-decoration: none;	
-
-}
-
-.legends {
-	font-family: "Monsieur La Doulaise", cursive;
-	font-weight: 500;
-	font-style: normal;
-	font-size: 35px;
-	user-select: none;
-	text-align: center;
-}
-
-.social-media{
-	margin-top:20px;
-	
-	font-weight: 500;
-	text-align: center;
-}
-
-.social-media a{
-	color: #333;
-	text-decoration: none;
-}
-
-.resume a {
-	font-family: "Roboto", sans-serif;
-	font-size:22px;
-	text-decoration: none;
-	font-weight: bold;
+    height: 100vh;
+    z-index: 0;
+	text-align:center;
 }
 
 
-
-.legends {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        height: 20px;
-        color: #333;
-        text-align: center;
-}
-	
 /* Sélection en BW */
 body::
 -moz-selection { background: #333; }
