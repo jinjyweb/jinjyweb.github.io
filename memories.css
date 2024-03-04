@@ -47,17 +47,9 @@ font-family: 'Poppins', sans-serif;
 }
 
 .menu {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  justify-content: center;
-  align-items: center;
   color: #333;
-}
+  	font-weight: 700;
 
-.menu {
-  display: flex;
-  justify-content: center;
 }
 
 .menu ul {
@@ -67,7 +59,7 @@ font-family: 'Poppins', sans-serif;
 
 .menu ul li {
   display: inline-block;
-  margin: 0 10px;
+  margin: 0 25px;
 }
 
 .menu ul li a {
@@ -76,5 +68,53 @@ font-family: 'Poppins', sans-serif;
 }
 
 .menu ul li a:hover {
-    color: lightgrey;
+  color: lightgrey;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 50px;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Four columns */
+  grid-auto-rows: 200px; /* Fixed height for each row */
+  grid-gap: 10px;
+}
+
+.photo {
+  position: relative;
+  overflow: hidden;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  aspect-ratio: 1;
+  transition: transform 0.2s ease-in-out;
+}
+
+.photo:hover img {
+  transform: scale(1.05);
+}
+
+.photo::after {
+  content: attr(data-text); /* Display the data-text attribute content */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7); /* Background color for the caption */
+  color: white; /* Text color for the caption */
+  padding: 5px;
+  font-size: 12px;
+  text-align: center;
+  opacity: 0; /* Initially hide the caption */
+  transition: opacity 0.2s ease-in-out;
+}
+
+.photo:hover::after {
+  opacity: 0.7; /* Show the caption on hover */
 }

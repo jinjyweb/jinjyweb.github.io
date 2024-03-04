@@ -12,9 +12,9 @@
       <nav>
         <ul>
           <li><a href="Accueil.html">HOME</a></li>
-          <li><a href="Work.html">ABOUT ME</a></li>
-          <li><a href="#works">UNI</a></li>
-          <li><a href="#contact">BLOG</a></li>
+          <li><a href="resume.html">ABOUT ME</a></li>
+          <li><a href="university.html">UNI</a></li>
+          <li><a href="blog.html">BLOG</a></li>
         </ul>
       </nav>
     </header>
@@ -22,29 +22,28 @@
 </div>
     <main>
 	
-        <?php
-        // Display memories
-        $memoriesFile = "memories.txt";
-        if (file_exists($memoriesFile)) {
-            $memories = file($memoriesFile);
-            foreach ($memories as $memory) {
-                $memoryData = explode("|", $memory);
-                $imagePath = "uploads/" . $memoryData[0];
-                $title = $memoryData[1];
-                $caption = $memoryData[2];
-                $date = $memoryData[3];
-
-                echo '<div class="post">';
-                echo '<h2>' . $title . '</h2>';
-                echo '<img src="' . $imagePath . '" alt="' . $title . '">';
-                echo '<p class="caption">' . $caption . '</p>';
-                //echo '<p class="date">Posted on ' . $date . '</p>';
-                echo '</div>';
-            }
-        } else {
-            echo "No memories yet.";
-        }
-        ?>
+<div class="container">
+  <div class="photo-grid">
+    <!-- Replace the src attribute with your image URLs -->
+    <div class="photo" data-text="Paris XIX"><img src="https://i.imgur.com/XMdgamN.jpeg" alt=""></div>
+    <div class="photo" data-text="Paris XIII, went to school early"><img src="https://i.imgur.com/gVBC6Pb.jpeg" alt="Photo 2"></div>
+    <div class="photo" data-text="airplane mode"><img src="https://i.imgur.com/k4jJlgD.jpeg" alt="Photo 3"></div>
+	<div class="photo" data-text="Rolex Paris Masters - Tsitsipás"><img src="https://i.imgur.com/0pXiHO1.jpeg" alt="Photo 4"></div>
+    <div class="photo" data-text="Vernines - field internship"><img src="https://i.imgur.com/1OKEkY5.jpeg" alt="Photo 5"></div>
+    <div class="photo" data-text="The Great Wall"><img src="https://i.imgur.com/s2i98ql.jpeg" alt="Photo 6"></div>
+    <div class="photo" data-text="Peking University - East Door"><img src="https://i.imgur.com/1nUYNHa.jpeg" alt="Photo 7"></div>
+	<div class="photo" data-text="a stray cat in Peking University"><img src="https://i.imgur.com/er0XaY9.jpeg" alt="Photo 8"></div>
+    <div class="photo" data-text="red door in the Forbidden City"><img src="https://i.imgur.com/nZ2Ctya.jpeg" alt="Photo 9"></div>
+    <div class="photo" data-text="a deck of cards and some pints of beer"><img src="https://i.imgur.com/USGPaw1.jpeg" alt="Photo 10"></div>
+    <div class="photo" data-text="beach in Corsica"><img src="https://i.imgur.com/PNAV4GI.jpeg" alt="Photo 11"></div>
+	<div class="photo" data-text="crown in Ajaccio (Napoleon)"><img src="https://i.imgur.com/NwE10J8.jpeg" alt="Photo 12"></div>
+    <div class="photo" data-text="Weiming lake in PKU"><img src="https://i.imgur.com/KhvQ03l.jpeg" alt="Photo 13"></div>
+    <div class="photo" data-text="Ed Sheeran concert in Paris - moon"><img src="https://i.imgur.com/Mkwvi5C.jpeg" alt="Photo 14"></div>
+    <div class="photo" data-text="climbed Xiangshan valley in Beijing"><img src="https://i.imgur.com/r4bOE49.jpeg" alt="Photo 15"></div>
+	<div class="photo" data-text="Jason Derulo concert in Paris - 2024"><img src="https://i.imgur.com/bq3YHwV.jpeg" alt="Photo 16"></div>
+    <!-- Add more photo divs as needed -->
+  </div>
+</div>
     </main>
 	
 <footer>
