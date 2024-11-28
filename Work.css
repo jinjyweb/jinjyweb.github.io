@@ -102,15 +102,6 @@ header {
 
 }
 
-.legends {
-	font-family: "Monsieur La Doulaise", cursive;
-	font-weight: 500;
-	font-style: normal;
-	font-size: 35px;
-	user-select: none;
-	text-align: center;
-}
-
 .social-media{
 	margin-top:20px;
 	
@@ -130,18 +121,24 @@ header {
 	font-weight: bold;
 }
 
-
+.legends {
+	font-family: "Monsieur La Doulaise", cursive;
+	font-weight: 500;
+	font-style: normal;
+	font-size: 25px;
+	user-select: none;
+	text-align: center;
+}
 
 .legends {
         position: absolute;
-        bottom: 0;
+        bottom: 50;
         width: 100%;
-        height: 20px;
+        height: 10px;
         color: #333;
         text-align: center;
 }
 	
-/* Sélection en BW */
 body::
 -moz-selection { background: #333; }
 ::selection { color: white; 
