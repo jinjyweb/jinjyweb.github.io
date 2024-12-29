@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gallery - Camille</title>
+  <link rel="stylesheet" href="gallery.css">
+  <script src="gallery.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="Home.html">HOME</a></li>
+        <li><a href="Accueil.html">ABOUT ME</a></li>
+        <li><a href="university.html">UNI</a></li>
+        <li><a href="blog.html">BLOG</a></li>
+        <li><a href="gallery.html">GALLERY</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <div class="gallery-container">
+      <h1>My Gallery</h1>
+      <p class="gallery-intro">A collection of memories captured through my lens ✨</p>
+      <div class="gallery-controls">
+        <button id="shuffle-btn">Random</button>
+        <select id="filter-select">
+          <option value="all">All</option>
+          <option value="nature">Nature</option>
+          <option value="city">City</option>
+          <option value="travel">Travel</option>
+          <option value="events">Events</option>
+          <option value="animals">Animals</option>
+		  <option value="museum">Museums</option>
+		  <option value="friends">Friends</option>
+
+
+        </select>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item" data-category="nature" data-fullsrc="https://imgur.com/KblfFW7.jpeg">
+          <img src="https://imgur.com/KblfFW7.jpeg" alt="Corsica 2022" loading="lazy">
+          <div class="caption">summer (Corsica)</div>
+        </div>
+        <div class="gallery-item" data-category="city" data-fullsrc="https://imgur.com/vIAUR8S.jpeg">
+          <img src="https://imgur.com/vIAUR8S.jpeg" alt="christmas tree" loading="lazy">
+          <div class="caption">christmas tree</div>
+        </div>
+        <div class="gallery-item" data-category="animals" data-fullsrc="https://imgur.com/GT49kkh.jpeg">
+          <img src="https://imgur.com/GT49kkh.jpeg" alt="cat in Trebeudern" loading="lazy">
+          <div class="caption">majestic</div>
+        </div>
+        <div class="gallery-item" data-category="nature" data-fullsrc="https://i.imgur.com/1OKEkY5.jpeg">
+          <img src="https://i.imgur.com/1OKEkY5.jpeg" alt="Vernines - field internship" loading="lazy">
+          <div class="caption">romantic</div>
+        </div>
+        <div class="gallery-item" data-category="travel" data-fullsrc="https://i.imgur.com/s2i98ql.jpeg">
+          <img src="https://i.imgur.com/s2i98ql.jpeg" alt="The Great Wall" loading="lazy">
+          <div class="caption">warrior (the Great Wall)</div>
+        </div>
+        <div class="gallery-item" data-category="city" data-fullsrc="https://i.imgur.com/1nUYNHa.jpeg">
+          <img src="https://i.imgur.com/1nUYNHa.jpeg" alt="Peking University - East Door" loading="lazy">
+          <div class="caption">studious (Peking University)</div>
+        </div>
+        <div class="gallery-item" data-category="friends" data-fullsrc="https://imgur.com/wHOn5Ax.jpeg">
+          <img src="https://imgur.com/wHOn5Ax.jpeg" alt="drunk self" loading="lazy">
+          <div class="caption">sep 2024</div>
+        </div>
+        <div class="gallery-item" data-category="museum" data-fullsrc="https://imgur.com/nwX0pvl.jpeg">
+          <img src="https://imgur.com/nwX0pvl.jpeg" alt="Murakami Expo Paris 2024" loading="lazy">
+          <div class="caption">Murakami 2024</div>
+        </div>
+        <div class="gallery-item" data-category="nature" data-fullsrc="https://imgur.com/W4Q4udB.jpeg">
+          <img src="https://imgur.com/W4Q4udB.jpeg" alt="Trébeurden - 2024" loading="lazy">
+          <div class="caption">adventurous</div>
+        </div>
+        <div class="gallery-item" data-category="nature" data-fullsrc="https://imgur.com/UtT3N4a.jpeg">
+          <img src="https://imgur.com/UtT3N4a.jpeg" alt="WEI 2024" loading="lazy">
+          <div class="caption">WEI 2024</div>
+        </div>
+        <div class="gallery-item" data-category="friends" data-fullsrc="https://imgur.com/KRZIUTw.jpeg">
+          <img src="https://imgur.com/KRZIUTw.jpeg" alt="Merry Christmas" loading="lazy">
+          <div class="caption">Christmas 2023</div>
+        </div>
+        <div class="gallery-item" data-category="travel" data-fullsrc="https://i.imgur.com/KhvQ03l.jpeg">
+          <img src="https://i.imgur.com/KhvQ03l.jpeg" alt="Weiming lake in PKU" loading="lazy">
+          <div class="caption">water samples (PKU)</div>
+        </div>
+        <div class="gallery-item" data-category="city" data-fullsrc="https://i.imgur.com/Mkwvi5C.jpeg">
+          <img src="https://i.imgur.com/Mkwvi5C.jpeg" alt="moon after concert" loading="lazy">
+          <div class="caption">distress</div>
+        </div>
+        <div class="gallery-item" data-category="museum" data-fullsrc="https://imgur.com/vUvagRV.jpeg">
+          <img src="https://imgur.com/vUvagRV.jpeg" alt="Nike sculpt" loading="lazy">
+          <div class="caption">grandeur (Nike)</div>
+        </div>
+        <div class="gallery-item" data-category="events" data-fullsrc="https://i.imgur.com/VMm4jxB.jpeg">
+          <img src="https://i.imgur.com/VMm4jxB.jpeg" alt="Joe Hisaishi (Ghibli) concert in Paris - April 2024" loading="lazy">
+          <div class="caption">magic (Joe Hisaishi)</div>
+        </div>
+      </div>
+    </div>
+    <div id="lightbox" class="lightbox">
+      <span class="close">&times;</span>
+      <img id="lightbox-img" src="" alt="Fullscreen">
+    </div>
+  </main>
+  <footer>
+    <p>
+      Imprisonment.<br>
+      What a curious principle. We confine the physical body, yet the mind is still free.
+    </p>
+  </footer>
+</body>
+</html>

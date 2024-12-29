@@ -1,43 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JINJY</title>
+  <title>Accueil</title>
   <link rel="stylesheet" href="Accueil.css">
-  <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-YJG3NPSQZZ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-YJG3NPSQZZ');
-</script>
+  <script src="Accueil.js"></script>
 </head>
-
 <body>
-
-  <div class="container">
-    <div class="welcome">
-      <h1> Bienvenue !</h1>
-    </div>
-
-    <div class="menu">
-      <header>
-        <nav>
-          <ul>
-            <li><a href="Accueil.html">HOME</a></li>
-            <li><a href="resume.html">ABOUT ME</a></li>
-            <li><a href="university.html">UNI</a></li>
-            <li><a href="blog.html">BLOG</a></li>
-          </ul>
-        </nav>
-      </header>
-    </div>
+  <div class="menu">
+    <header>
+      <nav>
+        <ul>
+          <li><a href="Home.html">HOME</a></li>
+          <li><a href="Accueil.html">ABOUT ME</a></li>
+          <li><a href="university.html">UNI</a></li>
+          <li><a href="blog.html">BLOG</a></li>
+          <li><a href="gallery.html">GALLERY</a></li>
+        </ul>
+      </nav>
+    </header>
   </div>
-
+  <main>
+    <div class="container">
+      <div class="Profilepic" onmouseover="showResume()" onmouseout="hideResume()">
+        <h1>Camille</h1>
+        <img id="profilePic" src="Christmas.jpg" alt="Profile pic" loading="lazy">
+        <div id="resume" class="resume">
+          <a href="CV.pdf">Resume</a>
+        </div>
+      </div>
+      <div class="Description">
+        <p class="presentation">
+          Hi, <br>
+          I'm Camille, a student in Water Engineering based in Strasbourg & Paris, France. <br>
+          I like <u><a href="blog.html">music</a></u>, taking <u><a href="gallery.html">pictures</a></u>, and learn <u><a href="languages.html">languages</a></u><br>
+          (pas à jour) <br> ✨
+        </p>
+      </div>
+      <div class="social-media">
+        <a href="mailto:camille@gmail.com">nom.prénom[at]gmail.com</a><br>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p class="legends">
+      Imprisonment.<br>
+      What a curious principle. We confine the physical body, yet the mind is still free.
+    </p>
+  </footer>
 </body>
-
 </html>
