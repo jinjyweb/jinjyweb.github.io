@@ -59,19 +59,21 @@ h1  {
 }
 
 .gallery-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 220px));
   justify-content: center;
-  gap: 30px;
-  padding: 20px;
+  gap: 18px;
+  padding: 16px;
 }
 
 .gallery-item {
   position: relative;
-  width: 220px;
-  aspect-ratio: 1 / 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   transform: rotate(-3deg);
   transition: transform 0.3s ease;
+  background: transparent;
 }
 
 .gallery-item:nth-child(even) {
@@ -80,12 +82,13 @@ h1  {
 
 .gallery-item img {
   width: 100%;
-  height: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1.2;
   object-fit: cover;
-  border: 15px solid white;
-  border-bottom: 50px solid white;
-  box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
-  position: relative;
+  border: 14px solid white;
+  border-bottom: 42px solid white;
+  box-shadow: 5px 5px 12px rgba(0,0,0,0.18);
+  display: block;
 }
 
 .gallery-item::before {
@@ -97,22 +100,60 @@ h1  {
   height: 40px;
   background-size: contain;
   transform: translateX(-50%);
+  pointer-events: none;
 }
 
 .gallery-item .caption {
-  position: absolute;
-  bottom: 20px;
+  position: static;
+  display: block;
   width: 100%;
-  font-size: 16px;
+  margin-top: 10px;
+  font-size: 15px;
   font-weight: 600;
   color: #333;
   font-family: 'Reenie Beanie', cursive;
   text-align: center;
-  left: 17px;
+  padding: 0 8px;
 }
 
 .gallery-item:hover {
-  transform: scale(1.1) rotate(0deg);
+  transform: scale(1.05) rotate(0deg);
+}
+
+/* Mobile adjustments for phones (iPhone) */
+@media (max-width: 600px) {
+  .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .gallery-item {
+    transform: none !important;
+    margin: 0;
+  }
+
+  .gallery-item img {
+    border: 10px solid white;
+    border-bottom: 30px solid white;
+  }
+
+  .gallery-item .caption {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+
+  .gallery-controls button,
+  .gallery-controls select {
+    font-size: 18px;
+    padding: 10px 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .gallery-container {
@@ -141,4 +182,20 @@ footer {
   footer {
     transform: translateY(0);
   }
+}
+
+@media (min-width: 601px) {
+  .gallery-item .caption {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    bottom: 18px; 
+    margin: 0;
+    padding: 0 12px;
+    z-index: 5;
+    background: transparent; 
+    font-size: 16px;
+  }
+
+  .gallery-item .caption { color: #333; }
 }
