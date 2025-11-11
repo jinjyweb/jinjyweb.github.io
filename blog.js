@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgUrl = toCdnUrl(p.img);
     card.innerHTML = `
       <header class="feed-card__head">
-        <img class="feed-card__avatar" src="prof.png" alt="ccjinjy profile" width="40" height="40" loading="lazy" decoding="async" />
+        <img class="feed-card__avatar" src="ProfilePic.jpg" alt="ccjinjy profile" width="40" height="40" loading="lazy" decoding="async" />
         <div class="feed-card__meta">
           <div class="feed-card__user">ccjinjy</div>
           <div class="feed-card__sub">${timeStr}${locStr}</div>
@@ -286,4 +286,3 @@ document.addEventListener('DOMContentLoaded', () => {
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .forEach(p => feed.appendChild(renderPost(p)));
 });
-
