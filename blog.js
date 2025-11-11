@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Optional: point this to an image CDN/base URL if you host images elsewhere.
-  // Leave empty to use local files on GitHub Pages.
+
   const IMAGE_CDN_BASE = 'https://cdn.jsdelivr.net/gh/jinjyweb/jinjyweb.github.io@main/';
   const isAbsolute = (url) => /^https?:\/\//i.test(url);
   const fixExternalUrl = (url) => url ? url.replace(/^https?:\/\/imgur\.com\//i, 'https://i.imgur.com/') : url;
@@ -287,3 +286,4 @@ document.addEventListener('DOMContentLoaded', () => {
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .forEach(p => feed.appendChild(renderPost(p)));
 });
+
