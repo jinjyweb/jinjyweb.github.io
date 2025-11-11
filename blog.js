@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <header class="feed-card__head">
         <img class="feed-card__avatar" src="ProfilePic.jpg" alt="ccjinjy profile" width="40" height="40" loading="lazy" decoding="async" />
         <div class="feed-card__meta">
-          <div class="feed-card__user">ccjinjy</div>
+          <div class="feed-card__user">Camille</div>
           <div class="feed-card__sub">${timeStr}${locStr}</div>
         </div>
       </header>
