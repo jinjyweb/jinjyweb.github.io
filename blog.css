@@ -8,7 +8,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Crafty+Girls&family=Monsieur+La+Doulaise&family=Poppins:ital,wght@0,100;0,200;0,300;0,900;1,100;1,200;1,300;1,900&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 
-/*Début*/
 body, html {
   margin: 0;
   /* padding: 0; */
@@ -156,7 +155,19 @@ nav ul li a:hover {
 @media (max-width: 600px) {
   .motd { height: 70vh; }
   .motd .motd-title { font-size: 28px; top:34%; }
-  .feed { padding: 0 12px 60px; gap: 32px; margin-top: 96px; }
+  .feed {
+    width: 100%;
+    max-width: none;
+    padding: 0 0 60px;
+    gap: 28px;
+    margin: 96px 0 0 0;
+  }
+  .feed-card {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    box-shadow: none;
+  }
   .feed-card__caption .text { font-size:16px; }
 }
 
