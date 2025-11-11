@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'p23',
       img: 'https://i.imgur.com/l3oAPhv.jpeg',
       alt: 'Schatzi',
-      date: '2024-09-27',
+      date: '2025-09-27',
       location: 'Schatzi, Strasbourg',
       caption: 'eating flammekueche in Strasbourg is a must'
     },
