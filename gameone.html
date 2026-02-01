@@ -1216,6 +1216,14 @@ h1 {
 @keyframes fadeInUp {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+}
 
 #climate-container {
   background: rgba(0,0,0,0.3);
@@ -1951,12 +1959,10 @@ h1 {
       <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.08); border-radius: 12px;">
         <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 10px;" data-i18n="yourProfile">Your Profile</p>
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
-          <div class="player-emoji-display" id="my-emoji-display" onclick="openOnlineEmojiPicker()" style="width:45px; height:45px; font-size:1.6rem; cursor:pointer; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center;">😀</div>
-          <input type="text" id="my-name-input" class="room-code-input" style="flex:1; font-size:1rem; letter-spacing:0; text-transform:none; max-width:none; padding:10px 12px;" placeholder="Your name" onchange="updateMyProfile()">
+          <div id="my-emoji-display" onclick="openOnlineEmojiPicker()" style="width:45px; height:45px; font-size:1.6rem; cursor:pointer; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center;">😀</div>
+          <input type="text" id="my-name-input" style="flex:1; font-size:1rem; padding:10px 12px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:8px; color:white;" placeholder="Your name" onchange="updateMyProfile()">
         </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
-          ${COLOR_OPTIONS.map(c => `<div class="online-color-option" style="width:28px; height:28px; border-radius:50%; background:${c.value}; cursor:pointer; border:2px solid transparent;" onclick="selectOnlineColor('${c.value}')"></div>`).join('')}
-        </div>
+        <div id="online-color-picker" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;"></div>
       </div>
       
       <div class="lobby-status">
@@ -2406,7 +2412,7 @@ async function createRoom() {
   document.getElementById('room-code-display').textContent = currentRoomCode;
   document.getElementById('my-emoji-display').textContent = myEmoji;
   document.getElementById('my-name-input').value = myName;
-  highlightMyColor(myColor);
+  renderOnlineColorPicker(myColor);
   
   // Create room in Firebase
   roomRef = database.ref('rooms/' + currentRoomCode);
@@ -2512,7 +2518,7 @@ async function joinRoom() {
   document.getElementById('room-code-display').textContent = code;
   document.getElementById('my-emoji-display').textContent = myEmoji;
   document.getElementById('my-name-input').value = myName;
-  highlightMyColor(myColor);
+  renderOnlineColorPicker(myColor);
   
   // Listen for player changes
   roomRef.child('players').on('value', (snapshot) => {
@@ -2579,14 +2585,20 @@ function leaveRoom() {
 }
 
 // Profile customization helpers
-function highlightMyColor(color) {
-  document.querySelectorAll('.online-color-option').forEach(el => {
-    el.style.borderColor = el.style.background === color ? 'white' : 'transparent';
-  });
+function renderOnlineColorPicker(selectedColor) {
+  const container = document.getElementById('online-color-picker');
+  container.innerHTML = COLOR_OPTIONS.map(c => `
+    <div class="online-color-option" 
+         style="width:28px; height:28px; border-radius:50%; background:${c.value}; cursor:pointer; border:3px solid ${c.value === selectedColor ? 'white' : 'transparent'};" 
+         onclick="selectOnlineColor('${c.value}')"></div>
+  `).join('');
 }
 
 function selectOnlineColor(color) {
-  highlightMyColor(color);
+  document.querySelectorAll('.online-color-option').forEach(el => {
+    const elColor = el.style.background;
+    el.style.borderColor = elColor === color ? 'white' : 'transparent';
+  });
   updateMyProfile();
 }
 
@@ -2690,28 +2702,45 @@ function createInitialTiles() {
 
 // Start game from room data
 async function startGameFromRoom() {
+  console.log('startGameFromRoom called');
+  
   // Get game state
   const stateSnapshot = await roomRef.child('gameState').once('value');
   const state = stateSnapshot.val();
   
-  if (!state) return;
+  console.log('Game state from Firebase:', state);
+  
+  if (!state) {
+    console.log('No state found');
+    return;
+  }
   
   // Find my player index
   const myIndex = state.players.findIndex(p => p.id === myPlayerId);
-  if (myIndex === -1) return;
+  console.log('My player index:', myIndex, 'myPlayerId:', myPlayerId);
+  
+  if (myIndex === -1) {
+    console.log('Player not found in state');
+    return;
+  }
   
   // Store my player index for turn checking
   myPlayerIndex = myIndex;
   
-  // Set up local game state with player IDs
-  players = state.players.map(p => ({
-    id: p.id,
-    name: p.name,
-    color: p.color,
-    emoji: p.emoji || '😀',
-    money: p.money,
-    pos: p.pos
-  }));
+  // Set up local game state with player IDs - REPLACE the players array
+  players = [];
+  state.players.forEach(p => {
+    players.push({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      emoji: p.emoji || '😀',
+      money: p.money,
+      pos: p.pos
+    });
+  });
+  
+  console.log('Players set to:', players);
   
   playerCount = players.length;
   current = state.currentPlayer;
@@ -2755,14 +2784,16 @@ async function startGameFromRoom() {
 function syncGameState(state) {
   if (!isOnlineMode || !state) return;
   
-  // Update players
-  state.players.forEach((p, i) => {
-    if (players[i]) {
-      players[i].id = p.id;
-      players[i].money = p.money;
-      players[i].pos = p.pos;
-    }
-  });
+  // REPLACE players array entirely with Firebase state
+  players = state.players.map(p => ({
+    id: p.id,
+    name: p.name,
+    color: p.color,
+    emoji: p.emoji || '😀',
+    money: p.money,
+    pos: p.pos
+  }));
+  playerCount = players.length;
   
   // Update tiles
   state.tiles.forEach((t, i) => {
@@ -2794,17 +2825,30 @@ function syncGameState(state) {
 // Check if it's my turn
 function isMyTurn() {
   if (!isOnlineMode) return true;
-  const myIndex = players.findIndex((p, i) => {
-    const statePlayer = gameStateRef ? players[i] : null;
-    return statePlayer && players[i].name === players[currentPlayer].name;
-  });
-  return players[currentPlayer]?.name === players.find((p, i) => {
-    return roomRef && myPlayerId && p.name.includes(myPlayerId.slice(-4));
-  })?.name || currentPlayer === players.findIndex((_, i) => {
-    // Find by checking which player I am
-    const snapshot = roomRef?.child('gameState/players');
-    return true;
-  });
+  return myPlayerIndex === current;
+}
+
+// Show dice result animation for other players' rolls
+function showDiceResult(value, playerName) {
+  // Simple notification that another player rolled
+  const notification = document.createElement('div');
+  notification.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.85);
+    color: white;
+    padding: 30px 50px;
+    border-radius: 20px;
+    font-size: 28px;
+    z-index: 9999;
+    text-align: center;
+    animation: fadeInOut 2s ease;
+  `;
+  notification.innerHTML = `🎲 ${playerName} rolled <strong>${value}</strong>!`;
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 2000);
 }
 
 // Simplified: check my turn by player ID stored in state
