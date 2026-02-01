@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🌊 Sink or Sell</title>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -178,11 +181,15 @@ h1 {
 }
 
 .player-card .token {
-  width: 16px;
-  height: 16px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   margin: 0 auto 5px;
   border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
 }
 
 /* Controls */
@@ -428,11 +435,15 @@ h1 {
 }
 
 .player-dot {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   border: 2px solid white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
 }
 
 /* Log */
@@ -683,33 +694,102 @@ h1 {
 
 .player-setup-row {
   display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 10px;
+}
+
+.player-setup-top {
+  display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 10px;
-  background: rgba(0,0,0,0.2);
-  border-radius: 8px;
+}
+
+.player-emoji-display {
+  width: 50px;
+  height: 50px;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.15);
+  border: 3px solid rgba(78, 205, 196, 0.4);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.player-emoji-display::after {
+  content: '✏️';
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  font-size: 0.7rem;
+  background: #4ecdc4;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+}
+
+.player-emoji-display:hover {
+  background: rgba(78, 205, 196, 0.3);
+  transform: scale(1.1);
+  border-color: #4ecdc4;
+  box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
 }
 
 .player-name-input {
   flex: 1;
-  padding: 10px;
+  padding: 10px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 1rem;
   background: rgba(255,255,255,0.9);
   color: #333;
 }
 
+.random-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.random-btn:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.random-btn:active {
+  transform: scale(0.95);
+}
+
 .color-picker {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .color-option {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   cursor: pointer;
   border: 3px solid transparent;
@@ -723,6 +803,80 @@ h1 {
 .color-option.selected {
   border-color: white;
   box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Emoji Picker Modal */
+#emoji-picker-modal {
+  z-index: 2000;
+  background: rgba(0,0,0,0.85);
+}
+
+.emoji-picker-modal {
+  max-width: 340px;
+  width: 90%;
+  text-align: center;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid rgba(78, 205, 196, 0.6);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(78, 205, 196, 0.3);
+  padding: 25px;
+  border-radius: 20px;
+}
+
+.emoji-picker-title {
+  font-size: 1.3rem;
+  margin-bottom: 15px;
+}
+
+.emoji-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+}
+
+.emoji-option {
+  width: 45px;
+  height: 45px;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.1);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emoji-option:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.15);
+}
+
+.emoji-option.selected {
+  border-color: #4ecdc4;
+  background: rgba(78, 205, 196, 0.2);
+  box-shadow: 0 0 10px rgba(78, 205, 196, 0.4);
+}
+
+.emoji-picker-close {
+  margin-top: 15px;
+  padding: 10px 30px;
+  font-size: 1rem;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.emoji-picker-close:hover {
+  transform: scale(1.05);
 }
 
 /* Player Count Selection */
@@ -1146,7 +1300,19 @@ h1 {
   }
   .player-card .name { font-size: 0.6rem; }
   .player-card .money { font-size: 0.75rem; }
-  .player-card .token { width: 8px; height: 8px; margin-bottom: 2px; border-width: 1px; }
+  .player-card .token { width: 16px; height: 16px; margin-bottom: 2px; border-width: 1px; font-size: 0.6rem; }
+  
+  /* Setup mobile */
+  .player-setup-row { padding: 10px; }
+  .player-setup-top { gap: 8px; }
+  .player-emoji-display { width: 40px; height: 40px; font-size: 1.5rem; }
+  .player-name-input { padding: 8px 10px; font-size: 0.9rem; }
+  .random-btn { width: 38px; height: 38px; font-size: 1.2rem; }
+  .color-option { width: 22px; height: 22px; }
+  
+  /* Emoji picker mobile */
+  .emoji-picker-grid { grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .emoji-option { width: 40px; height: 40px; font-size: 1.5rem; }
   
   .controls { gap: 3px; margin-bottom: 5px; }
   .btn { 
@@ -1309,10 +1475,507 @@ h1 {
   #board { max-width: 250px; max-height: 250px; }
   .climate-container { display: none; }
 }
+
+/* ============ MULTIPLAYER LOBBY STYLES ============ */
+.lobby-modal {
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  background: rgba(15, 25, 45, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  padding: 40px 32px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.lobby-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.lobby-title {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.lobby-subtitle {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 32px;
+  font-weight: 400;
+}
+
+.lobby-wave {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.lobby-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.lobby-btn {
+  padding: 16px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.lobby-btn:hover {
+  transform: translateY(-2px);
+}
+
+.lobby-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.lobby-btn-icon {
+  font-size: 1.3rem;
+}
+
+.lobby-btn-create {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.lobby-btn-create:hover {
+  background: #059669;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+}
+
+.lobby-btn-join {
+  background: #6366f1;
+  color: white;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.lobby-btn-join:hover {
+  background: #4f46e5;
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+}
+
+.lobby-btn-local {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+
+.lobby-btn-local:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.lobby-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 14px 20px;
+  font-size: 0.9rem;
+  box-shadow: none;
+}
+
+.lobby-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.lobby-btn-back {
+  background: #f59e0b;
+  color: white;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+}
+
+.lobby-btn-back:hover {
+  background: #d97706;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+}
+
+.lobby-btn-leave {
+  background: #ef4444;
+  color: white;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+}
+
+.lobby-btn-leave:hover {
+  background: #dc2626;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+}
+
+.lobby-divider {
+  display: flex;
+  align-items: center;
+  margin: 16px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.lobby-divider::before,
+.lobby-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lobby-divider span {
+  padding: 0 16px;
+  font-size: 0.8rem;
+  text-transform: lowercase;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+}
+
+.room-code-display {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 8px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  margin: 12px 0;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  color: #10b981;
+  position: relative;
+}
+
+.room-code-label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.room-code-input {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 6px;
+  padding: 14px 16px;
+  text-align: center;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 200px;
+  transition: all 0.2s ease;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+}
+
+.room-code-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.room-code-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 4px;
+}
+
+.waiting-players {
+  margin: 16px 0;
+  text-align: left;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.waiting-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.waiting-player:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.waiting-player-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.waiting-player-name {
+  flex: 1;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.waiting-player-badge {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.waiting-player-host {
+  background: #f59e0b;
+  color: #000;
+}
+
+.waiting-player-you {
+  background: #10b981;
+  color: white;
+}
+
+.lobby-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 12px 0;
+  padding: 8px;
+}
+
+.lobby-error {
+  color: #f87171;
+  font-size: 0.85rem;
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+}
+
+.copy-btn {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.copy-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.online-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #4caf50;
+  border-radius: 50%;
+  margin-right: 5px;
+  box-shadow: 0 0 10px #4caf50;
+  animation: pulse-online 1.5s infinite;
+}
+
+@keyframes pulse-online {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px #4caf50; }
+  50% { opacity: 0.6; box-shadow: 0 0 20px #4caf50; }
+}
+
+.turn-indicator {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.9);
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  z-index: 100;
+  display: none;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.turn-indicator.your-turn {
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  border-color: rgba(255,255,255,0.3);
+  animation: pulse-turn 1s infinite;
+}
+
+@keyframes pulse-turn {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.05); }
+}
+
+/* Mobile styles for lobby */
+@media (max-width: 600px) {
+  .lobby-modal { 
+    max-width: 92%; 
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+  .lobby-title { font-size: 1.5rem; }
+  .lobby-wave { font-size: 2.8rem; margin-bottom: 12px; }
+  .lobby-subtitle { font-size: 0.85rem; margin-bottom: 24px; }
+  .lobby-btn { 
+    padding: 14px 18px; 
+    font-size: 0.9rem; 
+    border-radius: 12px;
+  }
+  .lobby-btn-icon { font-size: 1.2rem; }
+  .room-code-display { 
+    font-size: 1.8rem; 
+    letter-spacing: 6px; 
+    padding: 14px 18px; 
+  }
+  .room-code-input { 
+    font-size: 1.4rem; 
+    letter-spacing: 5px; 
+    padding: 12px 14px;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 380px) {
+  .lobby-modal { padding: 24px 18px; }
+  .lobby-title { font-size: 1.3rem; }
+  .lobby-wave { font-size: 2.2rem; }
+  .lobby-btn { padding: 12px 14px; font-size: 0.85rem; gap: 8px; }
+  .lobby-btn-icon { font-size: 1.1rem; }
+  .room-code-display { font-size: 1.5rem; letter-spacing: 5px; }
+  .room-code-input { font-size: 1.2rem; letter-spacing: 4px; }
+}
 </style>
 </head>
 
 <body>
+
+<!-- Turn Indicator for Online Play -->
+<div class="turn-indicator" id="turn-indicator"></div>
+
+<!-- Multiplayer Lobby Modal -->
+<div class="modal-overlay active" id="lobby-modal">
+  <div class="modal lobby-modal">
+    <!-- Main Menu -->
+    <div id="lobby-menu">
+      <div class="lobby-wave">🌊</div>
+      <h3 class="lobby-title"><span data-i18n="title">Sink or Sell</span></h3>
+      <p class="lobby-subtitle" data-i18n="chooseMode">Choose how to play</p>
+      
+      <div class="lobby-buttons">
+        <button class="lobby-btn lobby-btn-create" onclick="createRoom()">
+          <span class="lobby-btn-icon">🌐</span>
+          <span data-i18n="createRoom">Create Online Room</span>
+        </button>
+        <button class="lobby-btn lobby-btn-join" onclick="showJoinRoom()">
+          <span class="lobby-btn-icon">🔗</span>
+          <span data-i18n="joinRoom">Join Online Room</span>
+        </button>
+        
+        <div class="lobby-divider"><span>or</span></div>
+        
+        <button class="lobby-btn lobby-btn-local" onclick="playLocal()">
+          <span class="lobby-btn-icon">🎮</span>
+          <span data-i18n="playLocal">Play Locally</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Join Room View -->
+    <div id="lobby-join" style="display:none;">
+      <div class="lobby-wave">🔗</div>
+      <h3 class="lobby-title" data-i18n="joinRoom">Join Room</h3>
+      <p class="lobby-subtitle" data-i18n="enterCode">Enter room code</p>
+      
+      <input type="text" class="room-code-input" id="join-code-input" maxlength="4" placeholder="ABCD" oninput="this.value = this.value.toUpperCase()" autocomplete="off">
+      <div class="lobby-error" id="join-error" style="display:none;"></div>
+      
+      <div style="margin-top:25px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <button class="lobby-btn lobby-btn-join" style="flex:1; min-width:120px;" onclick="joinRoom()">
+          <span class="lobby-btn-icon">✅</span>
+          <span data-i18n="join">Join</span>
+        </button>
+        <button class="lobby-btn lobby-btn-back" style="flex:1; min-width:120px;" onclick="showLobbyMenu()">
+          <span class="lobby-btn-icon">←</span>
+          <span data-i18n="back">Back</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Waiting Room View -->
+    <div id="lobby-waiting" style="display:none;">
+      <div class="lobby-wave">✨</div>
+      <p class="room-code-label" data-i18n="roomCode">Room Code</p>
+      <div class="room-code-display" id="room-code-display">----</div>
+      <button class="copy-btn" onclick="copyRoomCode()">📋 <span data-i18n="copyCode">Copy Code</span></button>
+      
+      <div class="lobby-status">
+        <span class="online-indicator"></span>
+        <span data-i18n="waitingPlayers">Waiting for players...</span>
+      </div>
+      
+      <div class="waiting-players" id="waiting-players"></div>
+      
+      <div id="host-controls" style="display:none;">
+        <button class="lobby-btn lobby-btn-create" style="width:100%; margin-top:10px;" onclick="startOnlineGame()">
+          <span class="lobby-btn-icon">▶️</span>
+          <span data-i18n="startOnlineGame">Start Game</span>
+        </button>
+      </div>
+      
+      <button class="lobby-btn lobby-btn-leave" style="width:100%; margin-top:15px;" onclick="leaveRoom()">
+        <span class="lobby-btn-icon">🚪</span>
+        <span data-i18n="leave">Leave Room</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Emoji Picker Modal -->
+<div class="modal-overlay" id="emoji-picker-modal">
+  <div class="modal emoji-picker-modal">
+    <h3 class="emoji-picker-title">🎭 <span data-i18n="chooseEmoji">Choose Emoji</span></h3>
+    <div class="emoji-picker-grid" id="emoji-picker-grid"></div>
+    <button class="emoji-picker-close" onclick="closeEmojiPicker()">✖ <span data-i18n="cancel">Cancel</span></button>
+  </div>
+</div>
 
 <!-- Language Toggle -->
 <div class="lang-toggle">
@@ -1514,7 +2177,29 @@ const translations = {
       Start: "Start", Beach: "Beach", Harbor: "Harbor", Resort: "Resort",
       Village: "Village", Marina: "Marina", Pier: "Pier", Island: "Island",
       Storm: "Storm", Flood: "Flood", "Town Hall": "Town Hall", Workshop: "Workshop", Depot: "Depot"
-    }
+    },
+    // Multiplayer
+    chooseMode: "Choose how to play:",
+    createRoom: "Create Online Room",
+    joinRoom: "Join Online Room",
+    playLocal: "Play Locally",
+    enterCode: "Enter room code:",
+    join: "Join",
+    back: "Back",
+    roomCode: "Room Code:",
+    copyCode: "Copy Code",
+    waitingPlayers: "Waiting for players...",
+    startOnlineGame: "Start Game",
+    leave: "Leave Room",
+    codeCopied: "Code copied!",
+    roomNotFound: "Room not found",
+    roomFull: "Room is full",
+    roomStarted: "Game already started",
+    yourTurn: "Your Turn!",
+    waitingTurn: "Waiting for {player}...",
+    youAre: "You are",
+    host: "Host",
+    chooseEmoji: "Choose Emoji"
   },
   fr: {
     title: "Couler ou Vendre",
@@ -1566,7 +2251,29 @@ const translations = {
       Start: "Départ", Beach: "Plage", Harbor: "Port", Resort: "Station",
       Village: "Village", Marina: "Marina", Pier: "Jetée", Island: "Île",
       Storm: "Tempête", Flood: "Inondation", "Town Hall": "Mairie", Workshop: "Atelier", Depot: "Dépôt"
-    }
+    },
+    // Multiplayer
+    chooseMode: "Choisissez comment jouer :",
+    createRoom: "Créer un Salon",
+    joinRoom: "Rejoindre un Salon",
+    playLocal: "Jouer en Local",
+    enterCode: "Entrez le code du salon :",
+    join: "Rejoindre",
+    back: "Retour",
+    roomCode: "Code du Salon :",
+    copyCode: "Copier",
+    waitingPlayers: "En attente de joueurs...",
+    startOnlineGame: "Lancer la Partie",
+    leave: "Quitter",
+    codeCopied: "Code copié !",
+    roomNotFound: "Salon introuvable",
+    roomFull: "Salon complet",
+    roomStarted: "Partie déjà commencée",
+    yourTurn: "C'est ton tour !",
+    waitingTurn: "En attente de {player}...",
+    youAre: "Tu es",
+    host: "Hôte",
+    chooseEmoji: "Choisir Emoji"
   }
 };
 
@@ -1614,6 +2321,470 @@ function renderRules() {
   `).join('');
 }
 
+// ============ FIREBASE MULTIPLAYER ============
+const firebaseConfig = {
+  apiKey: "AIzaSyDmflc5tInmnmyCtyrXQNg8ZEJrz2_M6OI",
+  authDomain: "jinjyweb-a909d.firebaseapp.com",
+  databaseURL: "https://jinjyweb-a909d-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jinjyweb-a909d",
+  storageBucket: "jinjyweb-a909d.firebasestorage.app",
+  messagingSenderId: "1005999363693",
+  appId: "1:1005999363693:web:ec9890892b076536c6d164"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// Multiplayer state
+let isOnlineMode = false;
+let isHost = false;
+let currentRoomCode = null;
+let myPlayerId = null;
+let roomRef = null;
+let gameStateRef = null;
+
+// Generate unique player ID
+function generatePlayerId() {
+  return 'player_' + Math.random().toString(36).substr(2, 9);
+}
+
+// Generate 4-letter room code
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+// Show lobby menu
+function showLobbyMenu() {
+  document.getElementById('lobby-menu').style.display = 'block';
+  document.getElementById('lobby-join').style.display = 'none';
+  document.getElementById('lobby-waiting').style.display = 'none';
+  document.getElementById('join-error').style.display = 'none';
+  document.getElementById('join-code-input').value = '';
+}
+
+// Play locally (skip lobby)
+function playLocal() {
+  isOnlineMode = false;
+  document.getElementById('lobby-modal').classList.remove('active');
+  document.getElementById('setup-modal').classList.add('active');
+}
+
+// Create online room
+async function createRoom() {
+  isHost = true;
+  isOnlineMode = true;
+  myPlayerId = generatePlayerId();
+  currentRoomCode = generateRoomCode();
+  
+  // Show waiting room
+  document.getElementById('lobby-menu').style.display = 'none';
+  document.getElementById('lobby-waiting').style.display = 'block';
+  document.getElementById('room-code-display').textContent = currentRoomCode;
+  document.getElementById('host-controls').style.display = 'block';
+  
+  // Create room in Firebase
+  roomRef = database.ref('rooms/' + currentRoomCode);
+  
+  const roomData = {
+    host: myPlayerId,
+    createdAt: firebase.database.ServerValue.TIMESTAMP,
+    status: 'waiting',
+    players: {
+      [myPlayerId]: {
+        id: myPlayerId,
+        name: t('player') + ' 1',
+        color: COLOR_OPTIONS[0].value,
+        joinedAt: firebase.database.ServerValue.TIMESTAMP
+      }
+    }
+  };
+  
+  await roomRef.set(roomData);
+  
+  // Listen for player changes
+  roomRef.child('players').on('value', (snapshot) => {
+    updateWaitingPlayers(snapshot.val());
+  });
+  
+  // Listen for game start
+  roomRef.child('status').on('value', (snapshot) => {
+    if (snapshot.val() === 'playing') {
+      startGameFromRoom();
+    }
+  });
+  
+  // Clean up on disconnect
+  roomRef.child('players/' + myPlayerId).onDisconnect().remove();
+}
+
+// Show join room view
+function showJoinRoom() {
+  document.getElementById('lobby-menu').style.display = 'none';
+  document.getElementById('lobby-join').style.display = 'block';
+  document.getElementById('join-code-input').focus();
+}
+
+// Join existing room
+async function joinRoom() {
+  const codeInput = document.getElementById('join-code-input');
+  const errorDiv = document.getElementById('join-error');
+  const code = codeInput.value.toUpperCase().trim();
+  
+  if (code.length !== 4) {
+    errorDiv.textContent = 'Enter a 4-letter code';
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Check if room exists
+  roomRef = database.ref('rooms/' + code);
+  const snapshot = await roomRef.once('value');
+  const room = snapshot.val();
+  
+  if (!room) {
+    errorDiv.textContent = t('roomNotFound');
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  if (room.status === 'playing') {
+    errorDiv.textContent = t('roomStarted');
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  const playerCount = Object.keys(room.players || {}).length;
+  if (playerCount >= 8) {
+    errorDiv.textContent = t('roomFull');
+    errorDiv.style.display = 'block';
+    return;
+  }
+  
+  // Join the room
+  isHost = false;
+  isOnlineMode = true;
+  myPlayerId = generatePlayerId();
+  currentRoomCode = code;
+  
+  const playerNum = playerCount + 1;
+  await roomRef.child('players/' + myPlayerId).set({
+    id: myPlayerId,
+    name: t('player') + ' ' + playerNum,
+    color: COLOR_OPTIONS[playerNum - 1]?.value || COLOR_OPTIONS[0].value,
+    joinedAt: firebase.database.ServerValue.TIMESTAMP
+  });
+  
+  // Show waiting room
+  document.getElementById('lobby-join').style.display = 'none';
+  document.getElementById('lobby-waiting').style.display = 'block';
+  document.getElementById('room-code-display').textContent = code;
+  document.getElementById('host-controls').style.display = 'none';
+  
+  // Listen for player changes
+  roomRef.child('players').on('value', (snapshot) => {
+    updateWaitingPlayers(snapshot.val());
+  });
+  
+  // Listen for game start
+  roomRef.child('status').on('value', (snapshot) => {
+    if (snapshot.val() === 'playing') {
+      startGameFromRoom();
+    }
+  });
+  
+  // Clean up on disconnect
+  roomRef.child('players/' + myPlayerId).onDisconnect().remove();
+}
+
+// Update waiting players list
+function updateWaitingPlayers(playersData) {
+  const container = document.getElementById('waiting-players');
+  if (!playersData) {
+    container.innerHTML = '';
+    return;
+  }
+  
+  const playersList = Object.values(playersData).sort((a, b) => a.joinedAt - b.joinedAt);
+  
+  container.innerHTML = playersList.map((p, idx) => {
+    const isMe = p.id === myPlayerId;
+    const isHostPlayer = idx === 0;
+    return `
+      <div class="waiting-player">
+        <div class="waiting-player-dot" style="background:${p.color}; box-shadow: 0 0 10px ${p.color};"></div>
+        <span class="waiting-player-name">${p.name}</span>
+        ${isHostPlayer ? `<span class="waiting-player-badge waiting-player-host">👑 ${t('host')}</span>` : ''}
+        ${isMe ? `<span class="waiting-player-badge waiting-player-you">✨ ${t('youAre')}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// Copy room code
+function copyRoomCode() {
+  navigator.clipboard.writeText(currentRoomCode).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    const original = btn.innerHTML;
+    btn.innerHTML = '✅ ' + t('codeCopied');
+    setTimeout(() => btn.innerHTML = original, 2000);
+  });
+}
+
+// Leave room
+function leaveRoom() {
+  if (roomRef && myPlayerId) {
+    roomRef.child('players/' + myPlayerId).remove();
+    roomRef.off();
+  }
+  isOnlineMode = false;
+  isHost = false;
+  currentRoomCode = null;
+  myPlayerId = null;
+  roomRef = null;
+  showLobbyMenu();
+}
+
+// Start online game (host only)
+async function startOnlineGame() {
+  if (!isHost) return;
+  
+  const snapshot = await roomRef.child('players').once('value');
+  const playersData = snapshot.val();
+  const playersList = Object.values(playersData).sort((a, b) => a.joinedAt - b.joinedAt);
+  
+  if (playersList.length < 2) {
+    alert('Need at least 2 players!');
+    return;
+  }
+  
+  // Initialize game state
+  const initialGameState = {
+    currentPlayer: 0,
+    round: 1,
+    totalBricks: 0,
+    players: playersList.map((p, idx) => ({
+      id: p.id,
+      name: p.name,
+      color: p.color,
+      money: 5,
+      pos: 0
+    })),
+    tiles: createInitialTiles(),
+    lastAction: null,
+    diceResult: null
+  };
+  
+  await roomRef.child('gameState').set(initialGameState);
+  await roomRef.child('status').set('playing');
+}
+
+// Create initial tiles for sync
+function createInitialTiles() {
+  return tiles.map(tile => ({
+    name: tile.name,
+    type: tile.type,
+    state: tile.state,
+    owner: tile.owner,
+    bricks: tile.bricks,
+    crisis: tile.crisis
+  }));
+}
+
+// Start game from room data
+async function startGameFromRoom() {
+  // Get game state
+  const stateSnapshot = await roomRef.child('gameState').once('value');
+  const state = stateSnapshot.val();
+  
+  if (!state) return;
+  
+  // Find my player index
+  const myIndex = state.players.findIndex(p => p.id === myPlayerId);
+  if (myIndex === -1) return;
+  
+  // Set up local game state
+  players = state.players.map(p => ({
+    name: p.name,
+    color: p.color,
+    money: p.money,
+    pos: p.pos
+  }));
+  
+  playerCount = players.length;
+  currentPlayer = state.currentPlayer;
+  round = state.round;
+  totalBricks = state.totalBricks;
+  
+  // Sync tiles
+  state.tiles.forEach((t, i) => {
+    tiles[i].state = t.state;
+    tiles[i].owner = t.owner;
+    tiles[i].bricks = t.bricks;
+    tiles[i].crisis = t.crisis;
+  });
+  
+  // Close lobby, open game
+  document.getElementById('lobby-modal').classList.remove('active');
+  document.getElementById('setup-modal').classList.remove('active');
+  
+  gameStarted = true;
+  gameOver = false;
+  
+  // Listen for game state changes
+  gameStateRef = roomRef.child('gameState');
+  gameStateRef.on('value', (snapshot) => {
+    const newState = snapshot.val();
+    if (newState) {
+      syncGameState(newState);
+    }
+  });
+  
+  render();
+  updateTurnIndicator();
+}
+
+// Sync game state from Firebase
+function syncGameState(state) {
+  if (!isOnlineMode || !state) return;
+  
+  // Update players
+  state.players.forEach((p, i) => {
+    if (players[i]) {
+      players[i].money = p.money;
+      players[i].pos = p.pos;
+    }
+  });
+  
+  // Update tiles
+  state.tiles.forEach((t, i) => {
+    if (tiles[i]) {
+      tiles[i].state = t.state;
+      tiles[i].owner = t.owner;
+      tiles[i].bricks = t.bricks;
+      tiles[i].crisis = t.crisis;
+    }
+  });
+  
+  currentPlayer = state.currentPlayer;
+  round = state.round;
+  totalBricks = state.totalBricks;
+  
+  // Handle dice result animation
+  if (state.diceResult && state.lastAction === 'roll') {
+    showDiceResult(state.diceResult.value, state.diceResult.playerName);
+  }
+  
+  render();
+  updateTurnIndicator();
+}
+
+// Check if it's my turn
+function isMyTurn() {
+  if (!isOnlineMode) return true;
+  const myIndex = players.findIndex((p, i) => {
+    const statePlayer = gameStateRef ? players[i] : null;
+    return statePlayer && players[i].name === players[currentPlayer].name;
+  });
+  return players[currentPlayer]?.name === players.find((p, i) => {
+    return roomRef && myPlayerId && p.name.includes(myPlayerId.slice(-4));
+  })?.name || currentPlayer === players.findIndex((_, i) => {
+    // Find by checking which player I am
+    const snapshot = roomRef?.child('gameState/players');
+    return true;
+  });
+}
+
+// Simplified: check my turn by player ID stored in state
+function checkMyTurn() {
+  if (!isOnlineMode) return true;
+  
+  // In online mode, find which player index I am
+  return new Promise(async (resolve) => {
+    const stateSnapshot = await roomRef.child('gameState').once('value');
+    const state = stateSnapshot.val();
+    if (!state) { resolve(true); return; }
+    
+    const myIndex = state.players.findIndex(p => p.id === myPlayerId);
+    resolve(myIndex === state.currentPlayer);
+  });
+}
+
+// Update turn indicator
+function updateTurnIndicator() {
+  if (!isOnlineMode) {
+    document.getElementById('turn-indicator').style.display = 'none';
+    return;
+  }
+  
+  const indicator = document.getElementById('turn-indicator');
+  indicator.style.display = 'block';
+  
+  // Find my index
+  roomRef.child('gameState/players').once('value').then(snapshot => {
+    const playersData = snapshot.val();
+    if (!playersData) return;
+    
+    const myIndex = playersData.findIndex(p => p.id === myPlayerId);
+    
+    if (myIndex === currentPlayer) {
+      indicator.textContent = '🎯 ' + t('yourTurn');
+      indicator.classList.add('your-turn');
+    } else {
+      const currentName = players[currentPlayer]?.name || 'Player';
+      indicator.textContent = t('waitingTurn').replace('{player}', currentName);
+      indicator.classList.remove('your-turn');
+    }
+  });
+}
+
+// Push game state to Firebase
+async function pushGameState(action = null, extra = {}) {
+  if (!isOnlineMode || !gameStateRef) return;
+  
+  const state = {
+    currentPlayer,
+    round,
+    totalBricks,
+    players: players.map((p, i) => {
+      const existingId = roomRef ? myPlayerId : null;
+      return {
+        id: p.id || existingId || ('player_' + i),
+        name: p.name,
+        color: p.color,
+        money: p.money,
+        pos: p.pos
+      };
+    }),
+    tiles: tiles.map(t => ({
+      name: t.name,
+      type: t.type,
+      state: t.state,
+      owner: t.owner,
+      bricks: t.bricks,
+      crisis: t.crisis
+    })),
+    lastAction: action,
+    ...extra
+  };
+  
+  // Preserve player IDs
+  const existingState = await gameStateRef.once('value');
+  if (existingState.val()?.players) {
+    state.players = state.players.map((p, i) => ({
+      ...p,
+      id: existingState.val().players[i]?.id || p.id
+    }));
+  }
+  
+  await gameStateRef.set(state);
+}
+
 // ============ GAME CODE ============
 const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 
@@ -1625,7 +2796,17 @@ const COLOR_OPTIONS = [
   { name: "Orange", value: "#e67e22" },
   { name: "Pink", value: "#e91e63" },
   { name: "Cyan", value: "#00bcd4" },
-  { name: "Yellow", value: "#f1c40f" }
+  { name: "Yellow", value: "#f1c40f" },
+  { name: "Lime", value: "#8bc34a" },
+  { name: "Teal", value: "#009688" },
+  { name: "Indigo", value: "#3f51b5" },
+  { name: "Brown", value: "#795548" }
+];
+
+const EMOJI_OPTIONS = [
+  "😀", "😎", "🤠", "🥳", "😺", "🐶", "🦊", "🐸",
+  "🦄", "🐙", "🦋", "🌟", "🔥", "💎", "🎯", "🚀",
+  "🌈", "🍀", "🎮", "👑", "🦁", "🐼", "🦉", "🐝"
 ];
 
 let playerCount = 4;
@@ -1636,7 +2817,8 @@ function initPlayers(count) {
   for (let i = 0; i < count; i++) {
     players.push({
       name: `${t('player')} ${i + 1}`,
-      color: COLOR_OPTIONS[i].value,
+      color: COLOR_OPTIONS[i % COLOR_OPTIONS.length].value,
+      emoji: EMOJI_OPTIONS[i % EMOJI_OPTIONS.length],
       money: 5,
       pos: 0
     });
@@ -1703,7 +2885,7 @@ function render() {
   const playersRow = document.getElementById("players-row");
   playersRow.innerHTML = players.map((p, i) => `
     <div class="player-card ${i === current ? 'active' : ''}" style="border-color: ${i === current ? p.color : 'transparent'}">
-      <div class="token" style="background: ${p.color}"></div>
+      <div class="token" style="background: ${p.color}">${p.emoji || ''}</div>
       <div class="name" style="color: ${p.color}">${p.name}</div>
       <div class="money">$${p.money}</div>
     </div>
@@ -1729,7 +2911,7 @@ function render() {
           ${t.bricks > 0 ? `<div style="font-size:0.6rem;">🧱${t.bricks}</div>` : ''}
         ` : ''}
         <div class="tile-players">
-          ${playersHere.map(p => `<div class="player-dot" style="background: ${p.color}"></div>`).join('')}
+          ${playersHere.map(p => `<div class="player-dot" style="background: ${p.color}; font-size: 0.5rem; display: flex; align-items: center; justify-content: center;">${p.emoji || ''}</div>`).join('')}
         </div>
       </div>
     `;
@@ -1815,6 +2997,25 @@ function showDice(playerName, playerColor, finalValue, callback) {
 
 function autoRoll() {
   if (rolled) return;
+  
+  // In online mode, check if it's my turn
+  if (isOnlineMode) {
+    roomRef.child('gameState/players').once('value').then(snapshot => {
+      const playersData = snapshot.val();
+      if (!playersData) return;
+      const myIndex = playersData.findIndex(p => p.id === myPlayerId);
+      if (myIndex !== current) {
+        // Not my turn - wait for sync
+        return;
+      }
+      doRoll();
+    });
+  } else {
+    doRoll();
+  }
+}
+
+function doRoll() {
   rolled = true;
   
   const rollValue = Math.floor(Math.random() * 6) + 1;
@@ -1836,6 +3037,11 @@ function autoRoll() {
     }
     
     log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
+    
+    // Sync to Firebase
+    if (isOnlineMode) {
+      pushGameState('roll', { diceResult: { value: rollValue, playerName: p.name } });
+    }
     
     resolve();
     render();
@@ -1956,6 +3162,10 @@ function buy() {
   p.money -= 2;
   t.owner = current;
   log(`🏠 ${p.name} buys ${t.label} (tile ${p.pos}) for $2`);
+  
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('buy');
+  
   render();
 }
 
@@ -2005,6 +3215,9 @@ function selectContribute(tileIndex) {
   } else {
     log(`🧱 ${p.name} adds brick to ${t.label} (${t.bricks} bricks)`);
   }
+  
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('contribute');
   
   closeModal();
   render();
@@ -2109,6 +3322,9 @@ function selectBuildWall(tileIndex) {
   t.bricks += 4;
   
   log(`🛡️ ${p.name} builds wall on ${t.label} for $4! (${t.bricks} bricks total)`);
+  
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('buildWall');
   
   closeModal();
   render();
@@ -2280,6 +3496,9 @@ function selectStorm(tileIndex) {
     log(`💀 Storm sinks ${t.label}! It's destroyed forever.`);
   }
   
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('storm');
+  
   closeModal();
   finishTurnAfterCrisis();
 }
@@ -2360,6 +3579,9 @@ function selectWeakFlood(tileIndex) {
     log(`💀 Flood sinks ${t.label}!`);
   }
   
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('weakFlood');
+  
   closeModal();
   finishTurnAfterCrisis();
 }
@@ -2380,6 +3602,9 @@ function selectFlood(tileIndex) {
     t.owner = null;
     log(`💀 Flood sinks ${t.label}! It's destroyed forever.`);
   }
+  
+  // Sync to Firebase
+  if (isOnlineMode) pushGameState('flood');
   
   closeModal();
   finishTurnAfterCrisis();
@@ -2524,6 +3749,21 @@ function closeTileInfo() {
 }
 
 function endTurn() {
+  // In online mode, only allow if it's my turn
+  if (isOnlineMode) {
+    roomRef.child('gameState/players').once('value').then(snapshot => {
+      const playersData = snapshot.val();
+      if (!playersData) return;
+      const myIndex = playersData.findIndex(p => p.id === myPlayerId);
+      if (myIndex !== current) return; // Not my turn
+      doEndTurn();
+    });
+  } else {
+    doEndTurn();
+  }
+}
+
+function doEndTurn() {
   rolled = false;
   current = (current + 1) % players.length;
   
@@ -2545,6 +3785,12 @@ function endTurn() {
   
   // Check win condition - last player with money or properties wins
   checkWinCondition();
+  
+  // Sync to Firebase
+  if (isOnlineMode) {
+    pushGameState('endTurn');
+    updateTurnIndicator();
+  }
   
   render();
   
@@ -2757,8 +4003,14 @@ function restartGame() {
   // Clear log
   document.getElementById("log").innerHTML = '';
   
-  // Show setup modal
-  document.getElementById("setup-modal").classList.add("active");
+  // Leave online room if any
+  if (isOnlineMode && roomRef) {
+    leaveRoom();
+  }
+  
+  // Show lobby modal
+  document.getElementById("lobby-modal").classList.add("active");
+  showLobbyMenu();
   initSetup();
 }
 
@@ -2768,7 +4020,11 @@ function initSetup() {
   const playerWord = t('player');
   setupDiv.innerHTML = players.map((p, i) => `
     <div class="player-setup-row">
-      <input type="text" class="player-name-input" id="name-${i}" value="${p.name}" placeholder="${playerWord} ${i+1}">
+      <div class="player-setup-top">
+        <div class="player-emoji-display" onclick="openEmojiPicker(${i}, event)">${p.emoji}</div>
+        <input type="text" class="player-name-input" id="name-${i}" value="${p.name}" placeholder="${playerWord} ${i+1}">
+        <button class="random-btn" onclick="randomizePlayer(${i})" title="Random">🎲</button>
+      </div>
       <div class="color-picker">
         ${COLOR_OPTIONS.map(c => `
           <div class="color-option ${p.color === c.value ? 'selected' : ''}" 
@@ -2782,15 +4038,35 @@ function initSetup() {
 }
 
 function selectColor(playerIndex, color) {
-  // Check if color is already taken
-  const taken = players.some((p, i) => i !== playerIndex && p.color === color);
-  if (taken) {
-    alert(currentLang === 'fr' ? "Cette couleur est déjà prise!" : "This color is already taken!");
-    return;
-  }
-  
   players[playerIndex].color = color;
   initSetup(); // Refresh to show selection
+}
+
+function selectEmoji(playerIndex, emoji) {
+  players[playerIndex].emoji = emoji;
+  closeEmojiPicker();
+  initSetup();
+}
+
+function openEmojiPicker(playerIndex, event) {
+  if (event) event.stopPropagation();
+  const modal = document.getElementById('emoji-picker-modal');
+  const grid = document.getElementById('emoji-picker-grid');
+  grid.innerHTML = EMOJI_OPTIONS.map(e => `
+    <div class="emoji-option ${players[playerIndex].emoji === e ? 'selected' : ''}" 
+         onclick="selectEmoji(${playerIndex}, '${e}')">${e}</div>
+  `).join('');
+  modal.classList.add('active');
+}
+
+function closeEmojiPicker() {
+  document.getElementById('emoji-picker-modal').classList.remove('active');
+}
+
+function randomizePlayer(playerIndex) {
+  players[playerIndex].color = COLOR_OPTIONS[Math.floor(Math.random() * COLOR_OPTIONS.length)].value;
+  players[playerIndex].emoji = EMOJI_OPTIONS[Math.floor(Math.random() * EMOJI_OPTIONS.length)];
+  initSetup();
 }
 
 function startGame() {
@@ -2821,6 +4097,9 @@ function startGame() {
 initSetup();
 renderRules();
 render();
+
+// Hide setup modal initially (lobby shows first)
+document.getElementById("setup-modal").classList.remove("active");
 </script>
 
 </body>
