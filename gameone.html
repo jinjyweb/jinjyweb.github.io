@@ -2441,8 +2441,13 @@ async function createRoom() {
   
   // Listen for game start
   roomRef.child('status').on('value', (snapshot) => {
-    if (snapshot.val() === 'playing') {
-      startGameFromRoom();
+    const status = snapshot.val();
+    console.log('[online] room status:', status);
+    if (status === 'playing') {
+      startGameFromRoom().catch((err) => {
+        console.error('[online] startGameFromRoom failed:', err);
+        alert('Online game failed to start: ' + (err?.message || err));
+      });
     }
   });
   
@@ -2527,8 +2532,13 @@ async function joinRoom() {
   
   // Listen for game start
   roomRef.child('status').on('value', (snapshot) => {
-    if (snapshot.val() === 'playing') {
-      startGameFromRoom();
+    const status = snapshot.val();
+    console.log('[online] room status:', status);
+    if (status === 'playing') {
+      startGameFromRoom().catch((err) => {
+        console.error('[online] startGameFromRoom failed:', err);
+        alert('Online game failed to start: ' + (err?.message || err));
+      });
     }
   });
   
@@ -2682,47 +2692,85 @@ async function startOnlineGame() {
     await roomRef.child('gameState').set(initialGameState);
     await roomRef.child('status').set('playing');
     console.log('Game started!');
+
+    // Ensure the starter client transitions immediately (listener should also fire)
+    startGameFromRoom().catch((err) => {
+      console.error('[online] startGameFromRoom failed (starter):', err);
+      alert('Online game failed to start: ' + (err?.message || err));
+    });
   } catch (error) {
     console.error('Error starting game:', error);
     alert('Error starting game: ' + error.message);
   }
 }
 
+function getOwnerPlayer(owner) {
+  if (owner === null || owner === undefined) return null;
+  const idx = typeof owner === 'number' ? owner : Number(owner);
+  if (!Number.isInteger(idx) || idx < 0 || idx >= players.length) return null;
+  return players[idx] || null;
+}
+
+function getOwnerColor(owner) {
+  return getOwnerPlayer(owner)?.color || null;
+}
+
+function sanitizeTileOwners() {
+  tiles.forEach(t => {
+    if (t.owner === null || t.owner === undefined) {
+      t.owner = null;
+      return;
+    }
+    const idx = typeof t.owner === 'number' ? t.owner : Number(t.owner);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= players.length) {
+      t.owner = null;
+      return;
+    }
+    t.owner = idx;
+  });
+}
+
 // Create initial tiles for sync
 function createInitialTiles() {
+  // Always start online games from a clean board state.
+  // This prevents stale owners/bricks from a previous local game from breaking online render.
   return tiles.map(tile => ({
     label: tile.label,
     icon: tile.icon,
     type: tile.type,
-    state: tile.state,
-    owner: tile.owner,
-    bricks: tile.bricks
+    state: 'dry',
+    owner: null,
+    bricks: 0
   }));
 }
 
 // Start game from room data
 async function startGameFromRoom() {
+  if (gameStarted) return;
+
   console.log('startGameFromRoom called');
+  try {
+    if (!roomRef) {
+      throw new Error('Not connected to room');
+    }
+
+    // Get game state
+    const stateSnapshot = await roomRef.child('gameState').once('value');
+    const state = stateSnapshot.val();
+
+    console.log('Game state from Firebase:', state);
+
+    if (!state) {
+      throw new Error('No game state found');
+    }
   
-  // Get game state
-  const stateSnapshot = await roomRef.child('gameState').once('value');
-  const state = stateSnapshot.val();
-  
-  console.log('Game state from Firebase:', state);
-  
-  if (!state) {
-    console.log('No state found');
-    return;
-  }
-  
-  // Find my player index
-  const myIndex = state.players.findIndex(p => p.id === myPlayerId);
-  console.log('My player index:', myIndex, 'myPlayerId:', myPlayerId);
-  
-  if (myIndex === -1) {
-    console.log('Player not found in state');
-    return;
-  }
+    // Find my player index
+    const myIndex = (state.players || []).findIndex(p => p.id === myPlayerId);
+    console.log('My player index:', myIndex, 'myPlayerId:', myPlayerId);
+
+    if (myIndex === -1) {
+      throw new Error('Player not found in online state (refresh both browsers)');
+    }
   
   // Store my player index for turn checking
   myPlayerIndex = myIndex;
@@ -2748,35 +2796,42 @@ async function startGameFromRoom() {
   totalBricks = state.totalBricks || 0;
   rolled = false;
   
-  // Sync tiles
-  state.tiles.forEach((t, i) => {
-    tiles[i].state = t.state;
-    tiles[i].owner = t.owner;
-    tiles[i].bricks = t.bricks;
-  });
+    // Sync tiles (guard against version mismatches)
+    (state.tiles || []).forEach((t, i) => {
+      if (!tiles[i]) return;
+      tiles[i].state = t.state;
+      tiles[i].owner = t.owner;
+      tiles[i].bricks = t.bricks;
+    });
+
+    sanitizeTileOwners();
   
-  // Close lobby, open game
-  document.getElementById('lobby-modal').classList.remove('active');
-  document.getElementById('setup-modal').classList.remove('active');
+    // Close lobby, open game
+    document.getElementById('lobby-modal')?.classList.remove('active');
+    document.getElementById('setup-modal')?.classList.remove('active');
+
+    gameStarted = true;
+    gameOver = false;
   
-  gameStarted = true;
-  gameOver = false;
-  
-  // Listen for game state changes
-  gameStateRef = roomRef.child('gameState');
-  gameStateRef.on('value', (snapshot) => {
-    const newState = snapshot.val();
-    if (newState) {
-      syncGameState(newState);
+    // Listen for game state changes
+    gameStateRef = roomRef.child('gameState');
+    gameStateRef.on('value', (snapshot) => {
+      const newState = snapshot.val();
+      if (newState) {
+        syncGameState(newState);
+      }
+    });
+
+    render();
+    updateTurnIndicator();
+
+    // Auto-roll if it's my turn (first player)
+    if (myPlayerIndex === 0) {
+      setTimeout(() => autoRoll(), 1000);
     }
-  });
-  
-  render();
-  updateTurnIndicator();
-  
-  // Auto-roll if it's my turn (first player)
-  if (myPlayerIndex === 0) {
-    setTimeout(() => autoRoll(), 1000);
+  } catch (err) {
+    console.error('[online] startGameFromRoom error:', err);
+    throw err;
   }
 }
 
@@ -2803,6 +2858,8 @@ function syncGameState(state) {
       tiles[i].bricks = t.bricks;
     }
   });
+
+  sanitizeTileOwners();
   
   current = state.currentPlayer;
   round = state.round;
@@ -3038,7 +3095,8 @@ function render() {
   const board = document.getElementById("board");
   board.innerHTML = tiles.map((t, i) => {
     const playersHere = players.filter(p => p.pos === i);
-    const ownerStyle = t.owner !== null ? `border-color: ${players[t.owner].color}; box-shadow: 0 0 10px ${players[t.owner].color}40;` : '';
+    const ownerColor = getOwnerColor(t.owner);
+    const ownerStyle = ownerColor ? `border-color: ${ownerColor}; box-shadow: 0 0 10px ${ownerColor}40;` : '';
     
     return `
       <div class="tile ${t.type} ${t.state === 'flooded' ? 'flooded' : ''} ${t.state === 'sunk' ? 'sunk' : ''}" data-pos="${i}" onclick="showTileInfo(${i})" style="${ownerStyle}">
@@ -3166,13 +3224,31 @@ function doRoll() {
   document.getElementById("buildBtn").disabled = true;
   document.getElementById("endBtn").disabled = true;
   
-    showDice(p.name, p.color, rollValue, () => {
-    handleLanding(rollValue);
+  showDice(p.name, p.color, rollValue, () => {
+    const oldPos = p.pos;
+    p.pos = (p.pos + rollValue) % 16;
+    
+    if (oldPos > p.pos || (oldPos + rollValue >= 16)) {
+      p.money += 2;
+      log(`✨ ${p.name} passes START and earns $2!`);
+    }
+    
+    log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
+    
+    // Sync to Firebase
+    if (isOnlineMode) {
+      pushGameState('roll', { diceResult: { value: rollValue, playerName: p.name } });
+    }
+    
+    resolve();
     render();
-    });
+    
+    // Re-enable end turn button
+    document.getElementById("endBtn").disabled = false;
+  });
+}
 
-
-function resolveTileEffects() {
+function resolve() {
   const p = players[current];
   const t = tiles[p.pos];
   const climate = getClimateStability();
@@ -3200,29 +3276,6 @@ function resolveTileEffects() {
     }
   }
   
-  function handleLanding(rollValue) {
-  const p = players[current];
-
-  const oldPos = p.pos;
-  p.pos = (p.pos + rollValue) % 16;
-
-  if (oldPos > p.pos || oldPos + rollValue >= 16) {
-    p.money += 2;
-    log(`✨ ${p.name} passes START and earns $2!`);
-  }
-
-  log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
-
-  if (isOnlineMode) {
-    pushGameState('roll', {
-      diceResult: { value: rollValue, playerName: p.name },
-      rolled: true
-    });
-  }
-
-  resolveTileEffects();
-}
-
   // Flood tile - effect depends on climate!
   if (t.type === "flood") {
     if (climate >= 15) {
@@ -3871,8 +3924,9 @@ function showTileInfo(index) {
   // Add current tile status if property or policy
   if (tile.type === 'property' || tile.type === 'policy') {
     let status = [];
-    if (tile.owner !== null) {
-      status.push(`<li style="color: ${players[tile.owner].color}">${currentLang === 'en' ? 'Owner' : 'Propriétaire'}: ${players[tile.owner].name}</li>`);
+    const ownerPlayer = getOwnerPlayer(tile.owner);
+    if (ownerPlayer) {
+      status.push(`<li style="color: ${ownerPlayer.color}">${currentLang === 'en' ? 'Owner' : 'Propriétaire'}: ${ownerPlayer.name}</li>`);
     }
     if (tile.bricks > 0) {
       status.push(`<li>🧱 ${tile.bricks} ${currentLang === 'en' ? 'bricks' : 'briques'} ${tile.bricks >= 4 ? '(🛡️ Protected)' : ''}</li>`);
@@ -4167,16 +4221,21 @@ function initSetup() {
         <input type="text" class="player-name-input" id="name-${i}" value="${p.name}" placeholder="${playerWord} ${i+1}">
         <button class="random-btn" onclick="randomizePlayer(${i})" title="Random">🎲</button>
       </div>
-      <div class="color-picker">
-        ${COLOR_OPTIONS.map(c => `
-          <div class="color-option ${p.color === c.value ? 'selected' : ''}" 
-               style="background: ${c.value}" 
-               onclick="selectColor(${i}, '${c.value}')" 
-               data-player="${i}" data-color="${c.value}"></div>
-        `).join('')}
-      </div>
+      <div class="color-picker">${renderSetupColorPicker(i, p.color)}</div>
     </div>
   `).join('');
+}
+
+function renderSetupColorPicker(playerIndex, selectedColor) {
+  return COLOR_OPTIONS.map(c => {
+    const selectedClass = selectedColor === c.value ? 'selected' : '';
+    return `
+      <div class="color-option ${selectedClass}"
+           style="background: ${c.value}"
+           onclick="selectColor(${playerIndex}, '${c.value}')"
+           data-player="${playerIndex}" data-color="${c.value}"></div>
+    `;
+  }).join('');
 }
 
 function selectColor(playerIndex, color) {
