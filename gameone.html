@@ -3166,31 +3166,13 @@ function doRoll() {
   document.getElementById("buildBtn").disabled = true;
   document.getElementById("endBtn").disabled = true;
   
-  showDice(p.name, p.color, rollValue, () => {
-    const oldPos = p.pos;
-    p.pos = (p.pos + rollValue) % 16;
-    
-    if (oldPos > p.pos || (oldPos + rollValue >= 16)) {
-      p.money += 2;
-      log(`✨ ${p.name} passes START and earns $2!`);
-    }
-    
-    log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
-    
-    // Sync to Firebase
-    if (isOnlineMode) {
-      pushGameState('roll', { diceResult: { value: rollValue, playerName: p.name } });
-    }
-    
-    resolve();
+    showDice(p.name, p.color, rollValue, () => {
+    handleLanding(rollValue);
     render();
-    
-    // Re-enable end turn button
-    document.getElementById("endBtn").disabled = false;
-  });
-}
+    });
 
-function resolve() {
+
+function resolveTileEffects() {
   const p = players[current];
   const t = tiles[p.pos];
   const climate = getClimateStability();
@@ -3218,6 +3200,29 @@ function resolve() {
     }
   }
   
+  function handleLanding(rollValue) {
+  const p = players[current];
+
+  const oldPos = p.pos;
+  p.pos = (p.pos + rollValue) % 16;
+
+  if (oldPos > p.pos || oldPos + rollValue >= 16) {
+    p.money += 2;
+    log(`✨ ${p.name} passes START and earns $2!`);
+  }
+
+  log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
+
+  if (isOnlineMode) {
+    pushGameState('roll', {
+      diceResult: { value: rollValue, playerName: p.name },
+      rolled: true
+    });
+  }
+
+  resolveTileEffects();
+}
+
   // Flood tile - effect depends on climate!
   if (t.type === "flood") {
     if (climate >= 15) {
