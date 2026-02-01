@@ -1549,6 +1549,8 @@ h1 {
   position: relative;
   letter-spacing: 0;
   text-transform: none;
+  background: #374151;
+  color: white;
 }
 
 .lobby-btn:hover {
@@ -1941,10 +1943,21 @@ h1 {
     
     <!-- Waiting Room View -->
     <div id="lobby-waiting" style="display:none;">
-      <div class="lobby-wave">✨</div>
       <p class="room-code-label" data-i18n="roomCode">Room Code</p>
       <div class="room-code-display" id="room-code-display">----</div>
       <button class="copy-btn" onclick="copyRoomCode()">📋 <span data-i18n="copyCode">Copy Code</span></button>
+      
+      <!-- My Player Customization -->
+      <div style="margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.08); border-radius: 12px;">
+        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6); margin-bottom: 10px;" data-i18n="yourProfile">Your Profile</p>
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <div class="player-emoji-display" id="my-emoji-display" onclick="openOnlineEmojiPicker()" style="width:45px; height:45px; font-size:1.6rem; cursor:pointer; background:rgba(255,255,255,0.1); border:2px solid rgba(255,255,255,0.3); border-radius:10px; display:flex; align-items:center; justify-content:center;">😀</div>
+          <input type="text" id="my-name-input" class="room-code-input" style="flex:1; font-size:1rem; letter-spacing:0; text-transform:none; max-width:none; padding:10px 12px;" placeholder="Your name" onchange="updateMyProfile()">
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+          ${COLOR_OPTIONS.map(c => `<div class="online-color-option" style="width:28px; height:28px; border-radius:50%; background:${c.value}; cursor:pointer; border:2px solid transparent;" onclick="selectOnlineColor('${c.value}')"></div>`).join('')}
+        </div>
+      </div>
       
       <div class="lobby-status">
         <span class="online-indicator"></span>
@@ -1953,7 +1966,7 @@ h1 {
       
       <div class="waiting-players" id="waiting-players"></div>
       
-      <div id="host-controls" style="display:none;">
+      <div id="host-controls">
         <button class="lobby-btn lobby-btn-create" style="width:100%; margin-top:10px;" onclick="startOnlineGame()">
           <span class="lobby-btn-icon">▶️</span>
           <span data-i18n="startOnlineGame">Start Game</span>
@@ -2341,6 +2354,7 @@ let isOnlineMode = false;
 let isHost = false;
 let currentRoomCode = null;
 let myPlayerId = null;
+let myPlayerIndex = -1;
 let roomRef = null;
 let gameStateRef = null;
 
@@ -2382,11 +2396,17 @@ async function createRoom() {
   myPlayerId = generatePlayerId();
   currentRoomCode = generateRoomCode();
   
+  const myEmoji = EMOJI_OPTIONS[Math.floor(Math.random() * EMOJI_OPTIONS.length)];
+  const myColor = COLOR_OPTIONS[0].value;
+  const myName = t('player') + ' 1';
+  
   // Show waiting room
   document.getElementById('lobby-menu').style.display = 'none';
   document.getElementById('lobby-waiting').style.display = 'block';
   document.getElementById('room-code-display').textContent = currentRoomCode;
-  document.getElementById('host-controls').style.display = 'block';
+  document.getElementById('my-emoji-display').textContent = myEmoji;
+  document.getElementById('my-name-input').value = myName;
+  highlightMyColor(myColor);
   
   // Create room in Firebase
   roomRef = database.ref('rooms/' + currentRoomCode);
@@ -2398,8 +2418,9 @@ async function createRoom() {
     players: {
       [myPlayerId]: {
         id: myPlayerId,
-        name: t('player') + ' 1',
-        color: COLOR_OPTIONS[0].value,
+        name: myName,
+        color: myColor,
+        emoji: myEmoji,
         joinedAt: firebase.database.ServerValue.TIMESTAMP
       }
     }
@@ -2473,10 +2494,15 @@ async function joinRoom() {
   currentRoomCode = code;
   
   const playerNum = playerCount + 1;
+  const myEmoji = EMOJI_OPTIONS[playerNum - 1] || EMOJI_OPTIONS[Math.floor(Math.random() * EMOJI_OPTIONS.length)];
+  const myColor = COLOR_OPTIONS[playerNum - 1]?.value || COLOR_OPTIONS[0].value;
+  const myName = t('player') + ' ' + playerNum;
+  
   await roomRef.child('players/' + myPlayerId).set({
     id: myPlayerId,
-    name: t('player') + ' ' + playerNum,
-    color: COLOR_OPTIONS[playerNum - 1]?.value || COLOR_OPTIONS[0].value,
+    name: myName,
+    color: myColor,
+    emoji: myEmoji,
     joinedAt: firebase.database.ServerValue.TIMESTAMP
   });
   
@@ -2484,7 +2510,9 @@ async function joinRoom() {
   document.getElementById('lobby-join').style.display = 'none';
   document.getElementById('lobby-waiting').style.display = 'block';
   document.getElementById('room-code-display').textContent = code;
-  document.getElementById('host-controls').style.display = 'none';
+  document.getElementById('my-emoji-display').textContent = myEmoji;
+  document.getElementById('my-name-input').value = myName;
+  highlightMyColor(myColor);
   
   // Listen for player changes
   roomRef.child('players').on('value', (snapshot) => {
@@ -2550,49 +2578,113 @@ function leaveRoom() {
   showLobbyMenu();
 }
 
-// Start online game (host only)
+// Profile customization helpers
+function highlightMyColor(color) {
+  document.querySelectorAll('.online-color-option').forEach(el => {
+    el.style.borderColor = el.style.background === color ? 'white' : 'transparent';
+  });
+}
+
+function selectOnlineColor(color) {
+  highlightMyColor(color);
+  updateMyProfile();
+}
+
+function openOnlineEmojiPicker() {
+  const modal = document.getElementById('emoji-picker-modal');
+  const grid = document.getElementById('emoji-picker-grid');
+  const currentEmoji = document.getElementById('my-emoji-display').textContent;
+  grid.innerHTML = EMOJI_OPTIONS.map(e => `
+    <div class="emoji-option ${currentEmoji === e ? 'selected' : ''}" 
+         onclick="selectOnlineEmoji('${e}')">${e}</div>
+  `).join('');
+  modal.classList.add('active');
+}
+
+function selectOnlineEmoji(emoji) {
+  document.getElementById('my-emoji-display').textContent = emoji;
+  document.getElementById('emoji-picker-modal').classList.remove('active');
+  updateMyProfile();
+}
+
+async function updateMyProfile() {
+  if (!roomRef || !myPlayerId) return;
+  
+  const name = document.getElementById('my-name-input').value.trim() || t('player');
+  const emoji = document.getElementById('my-emoji-display').textContent;
+  let color = COLOR_OPTIONS[0].value;
+  
+  document.querySelectorAll('.online-color-option').forEach(el => {
+    if (el.style.borderColor === 'white') {
+      color = el.style.background;
+    }
+  });
+  
+  await roomRef.child('players/' + myPlayerId).update({
+    name: name,
+    emoji: emoji,
+    color: color
+  });
+}
+
+// Start online game (any player can start)
 async function startOnlineGame() {
-  if (!isHost) return;
-  
-  const snapshot = await roomRef.child('players').once('value');
-  const playersData = snapshot.val();
-  const playersList = Object.values(playersData).sort((a, b) => a.joinedAt - b.joinedAt);
-  
-  if (playersList.length < 2) {
-    alert('Need at least 2 players!');
-    return;
+  try {
+    console.log('Starting game... roomRef:', roomRef);
+    
+    if (!roomRef) {
+      alert('Error: Not connected to room');
+      return;
+    }
+    
+    const snapshot = await roomRef.child('players').once('value');
+    const playersData = snapshot.val();
+    console.log('Players data:', playersData);
+    
+    const playersList = Object.values(playersData).sort((a, b) => a.joinedAt - b.joinedAt);
+    
+    if (playersList.length < 2) {
+      alert('Need at least 2 players!');
+      return;
+    }
+    
+    // Initialize game state
+    const initialGameState = {
+      currentPlayer: 0,
+      round: 1,
+      totalBricks: 0,
+      players: playersList.map((p, idx) => ({
+        id: p.id,
+        name: p.name,
+        color: p.color,
+        emoji: p.emoji || '😀',
+        money: 5,
+        pos: 0
+      })),
+      tiles: createInitialTiles(),
+      lastAction: null,
+      diceResult: null
+    };
+    
+    console.log('Setting game state...');
+    await roomRef.child('gameState').set(initialGameState);
+    await roomRef.child('status').set('playing');
+    console.log('Game started!');
+  } catch (error) {
+    console.error('Error starting game:', error);
+    alert('Error starting game: ' + error.message);
   }
-  
-  // Initialize game state
-  const initialGameState = {
-    currentPlayer: 0,
-    round: 1,
-    totalBricks: 0,
-    players: playersList.map((p, idx) => ({
-      id: p.id,
-      name: p.name,
-      color: p.color,
-      money: 5,
-      pos: 0
-    })),
-    tiles: createInitialTiles(),
-    lastAction: null,
-    diceResult: null
-  };
-  
-  await roomRef.child('gameState').set(initialGameState);
-  await roomRef.child('status').set('playing');
 }
 
 // Create initial tiles for sync
 function createInitialTiles() {
   return tiles.map(tile => ({
-    name: tile.name,
+    label: tile.label,
+    icon: tile.icon,
     type: tile.type,
     state: tile.state,
     owner: tile.owner,
-    bricks: tile.bricks,
-    crisis: tile.crisis
+    bricks: tile.bricks
   }));
 }
 
@@ -2608,25 +2700,30 @@ async function startGameFromRoom() {
   const myIndex = state.players.findIndex(p => p.id === myPlayerId);
   if (myIndex === -1) return;
   
-  // Set up local game state
+  // Store my player index for turn checking
+  myPlayerIndex = myIndex;
+  
+  // Set up local game state with player IDs
   players = state.players.map(p => ({
+    id: p.id,
     name: p.name,
     color: p.color,
+    emoji: p.emoji || '😀',
     money: p.money,
     pos: p.pos
   }));
   
   playerCount = players.length;
-  currentPlayer = state.currentPlayer;
+  current = state.currentPlayer;
   round = state.round;
-  totalBricks = state.totalBricks;
+  totalBricks = state.totalBricks || 0;
+  rolled = false;
   
   // Sync tiles
   state.tiles.forEach((t, i) => {
     tiles[i].state = t.state;
     tiles[i].owner = t.owner;
     tiles[i].bricks = t.bricks;
-    tiles[i].crisis = t.crisis;
   });
   
   // Close lobby, open game
@@ -2647,6 +2744,11 @@ async function startGameFromRoom() {
   
   render();
   updateTurnIndicator();
+  
+  // Auto-roll if it's my turn (first player)
+  if (myPlayerIndex === 0) {
+    setTimeout(() => autoRoll(), 1000);
+  }
 }
 
 // Sync game state from Firebase
@@ -2656,6 +2758,7 @@ function syncGameState(state) {
   // Update players
   state.players.forEach((p, i) => {
     if (players[i]) {
+      players[i].id = p.id;
       players[i].money = p.money;
       players[i].pos = p.pos;
     }
@@ -2667,13 +2770,12 @@ function syncGameState(state) {
       tiles[i].state = t.state;
       tiles[i].owner = t.owner;
       tiles[i].bricks = t.bricks;
-      tiles[i].crisis = t.crisis;
     }
   });
   
-  currentPlayer = state.currentPlayer;
+  current = state.currentPlayer;
   round = state.round;
-  totalBricks = state.totalBricks;
+  totalBricks = state.totalBricks || 0;
   
   // Handle dice result animation
   if (state.diceResult && state.lastAction === 'roll') {
@@ -2682,6 +2784,11 @@ function syncGameState(state) {
   
   render();
   updateTurnIndicator();
+  
+  // Auto-roll if it's now my turn and not yet rolled
+  if (myPlayerIndex === current && !rolled) {
+    setTimeout(() => autoRoll(), 500);
+  }
 }
 
 // Check if it's my turn
@@ -2725,22 +2832,14 @@ function updateTurnIndicator() {
   const indicator = document.getElementById('turn-indicator');
   indicator.style.display = 'block';
   
-  // Find my index
-  roomRef.child('gameState/players').once('value').then(snapshot => {
-    const playersData = snapshot.val();
-    if (!playersData) return;
-    
-    const myIndex = playersData.findIndex(p => p.id === myPlayerId);
-    
-    if (myIndex === currentPlayer) {
-      indicator.textContent = '🎯 ' + t('yourTurn');
-      indicator.classList.add('your-turn');
-    } else {
-      const currentName = players[currentPlayer]?.name || 'Player';
-      indicator.textContent = t('waitingTurn').replace('{player}', currentName);
-      indicator.classList.remove('your-turn');
-    }
-  });
+  if (myPlayerIndex === current) {
+    indicator.textContent = '🎯 ' + t('yourTurn');
+    indicator.classList.add('your-turn');
+  } else {
+    const currentName = players[current]?.name || 'Player';
+    indicator.textContent = t('waitingTurn').replace('{player}', currentName);
+    indicator.classList.remove('your-turn');
+  }
 }
 
 // Push game state to Firebase
@@ -2748,26 +2847,26 @@ async function pushGameState(action = null, extra = {}) {
   if (!isOnlineMode || !gameStateRef) return;
   
   const state = {
-    currentPlayer,
+    currentPlayer: current,
     round,
     totalBricks,
     players: players.map((p, i) => {
-      const existingId = roomRef ? myPlayerId : null;
       return {
-        id: p.id || existingId || ('player_' + i),
+        id: p.id || ('player_' + i),
         name: p.name,
         color: p.color,
+        emoji: p.emoji || '😀',
         money: p.money,
         pos: p.pos
       };
     }),
     tiles: tiles.map(t => ({
-      name: t.name,
+      label: t.label,
+      icon: t.icon,
       type: t.type,
       state: t.state,
       owner: t.owner,
-      bricks: t.bricks,
-      crisis: t.crisis
+      bricks: t.bricks
     })),
     lastAction: action,
     ...extra
@@ -3000,16 +3099,12 @@ function autoRoll() {
   
   // In online mode, check if it's my turn
   if (isOnlineMode) {
-    roomRef.child('gameState/players').once('value').then(snapshot => {
-      const playersData = snapshot.val();
-      if (!playersData) return;
-      const myIndex = playersData.findIndex(p => p.id === myPlayerId);
-      if (myIndex !== current) {
-        // Not my turn - wait for sync
-        return;
-      }
-      doRoll();
-    });
+    if (myPlayerIndex !== current) {
+      // Not my turn - wait for sync
+      console.log('Not my turn. myPlayerIndex:', myPlayerIndex, 'current:', current);
+      return;
+    }
+    doRoll();
   } else {
     doRoll();
   }
@@ -3751,13 +3846,11 @@ function closeTileInfo() {
 function endTurn() {
   // In online mode, only allow if it's my turn
   if (isOnlineMode) {
-    roomRef.child('gameState/players').once('value').then(snapshot => {
-      const playersData = snapshot.val();
-      if (!playersData) return;
-      const myIndex = playersData.findIndex(p => p.id === myPlayerId);
-      if (myIndex !== current) return; // Not my turn
-      doEndTurn();
-    });
+    if (myPlayerIndex !== current) {
+      console.log('Not my turn to end. myPlayerIndex:', myPlayerIndex, 'current:', current);
+      return;
+    }
+    doEndTurn();
   } else {
     doEndTurn();
   }
