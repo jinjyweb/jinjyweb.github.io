@@ -1,0 +1,2619 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌊 Sink or Sell</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #1a3a52 0%, #2d5a7b 50%, #1a3a52 100%);
+  min-height: 100vh;
+  padding: 10px;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Language Toggle */
+.lang-toggle {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1001;
+  display: flex;
+  gap: 5px;
+  background: rgba(0,0,0,0.4);
+  padding: 5px;
+  border-radius: 20px;
+}
+
+.lang-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+}
+
+.lang-btn.active {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.lang-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 8px;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+  letter-spacing: 2px;
+  padding-top: 35px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.85;
+  margin-bottom: 20px;
+  font-style: italic;
+}
+
+/* Player Panel */
+#player-panel {
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.round-display {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  padding: 8px 20px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 20px;
+  display: inline-block;
+  width: 100%;
+}
+
+/* Flood Risk Bar */
+#flood-risk-container {
+  margin-bottom: 15px;
+}
+
+.flood-risk-label {
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.flood-risk-bar {
+  background: rgba(0,0,0,0.4);
+  border-radius: 10px;
+  height: 28px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.flood-risk-fill {
+  height: 100%;
+  width: 10%;
+  background: linear-gradient(90deg, #4caf50, #ffeb3b, #ff9800, #f44336);
+  background-size: 400% 100%;
+  border-radius: 8px;
+  transition: width 0.5s ease;
+}
+
+.flood-risk-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+.players-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-card {
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 8px 12px;
+  min-width: 70px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  flex: 1;
+  max-width: 120px;
+}
+
+.player-card.active {
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+}
+
+.player-card .name {
+  font-weight: bold;
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-card .money {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.player-card .token {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin: 0 auto 5px;
+  border: 2px solid white;
+}
+
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.btn {
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 44px;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(80%);
+}
+
+.btn-roll {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: white;
+}
+
+.btn-buy {
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: white;
+}
+
+.btn-contribute {
+  background: linear-gradient(135deg, #a18cd1, #8b7dc9);
+  color: white;
+}
+
+.btn-end {
+  background: linear-gradient(135deg, #667eea, #5a6fd6);
+  color: white;
+}
+
+.btn-build {
+  background: linear-gradient(135deg, #8d6e63, #6d4c41);
+  color: white;
+}
+
+/* Board - Monopoly Style */
+#board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 6px;
+  margin-bottom: 15px;
+  aspect-ratio: 1;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Position tiles around the perimeter */
+.tile[data-pos="0"] { grid-column: 5; grid-row: 5; } /* Start - bottom right corner */
+.tile[data-pos="1"] { grid-column: 4; grid-row: 5; }
+.tile[data-pos="2"] { grid-column: 3; grid-row: 5; }
+.tile[data-pos="3"] { grid-column: 2; grid-row: 5; }
+.tile[data-pos="4"] { grid-column: 1; grid-row: 5; } /* bottom left corner */
+.tile[data-pos="5"] { grid-column: 1; grid-row: 4; }
+.tile[data-pos="6"] { grid-column: 1; grid-row: 3; }
+.tile[data-pos="7"] { grid-column: 1; grid-row: 2; }
+.tile[data-pos="8"] { grid-column: 1; grid-row: 1; } /* top left corner */
+.tile[data-pos="9"] { grid-column: 2; grid-row: 1; }
+.tile[data-pos="10"] { grid-column: 3; grid-row: 1; }
+.tile[data-pos="11"] { grid-column: 4; grid-row: 1; }
+.tile[data-pos="12"] { grid-column: 5; grid-row: 1; } /* top right corner */
+.tile[data-pos="13"] { grid-column: 5; grid-row: 2; }
+.tile[data-pos="14"] { grid-column: 5; grid-row: 3; }
+.tile[data-pos="15"] { grid-column: 5; grid-row: 4; }
+
+/* Center area - game title */
+.board-center {
+  grid-column: 2 / 5;
+  grid-row: 2 / 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+}
+
+.tile {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  padding: 6px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  border: 3px solid transparent;
+  min-height: 70px;
+  cursor: pointer;
+}
+
+.tile:hover {
+  transform: scale(1.02);
+}
+
+.tile-number {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-weight: bold;
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.tile-icon {
+  text-align: center;
+  font-size: 1.5rem;
+  margin: 2px 0;
+}
+
+.tile-label {
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tile-state {
+  text-align: center;
+  font-size: 0.7rem;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.tile.property {
+  background: linear-gradient(145deg, #81d4fa, #4fc3f7);
+  color: #0d47a1;
+}
+
+.tile.policy {
+  background: linear-gradient(145deg, #a5d6a7, #81c784);
+  color: #1b5e20;
+}
+
+.tile.storm {
+  background: linear-gradient(145deg, #ffe082, #ffb74d);
+  color: #e65100;
+}
+
+.tile.flood {
+  background: linear-gradient(145deg, #ef9a9a, #e57373);
+  color: #b71c1c;
+}
+
+.tile.start {
+  background: linear-gradient(145deg, #fff59d, #fff176);
+  color: #f57f17;
+}
+
+.tile.flooded {
+  opacity: 0.65;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(0,100,200,0.15) 5px,
+    rgba(0,100,200,0.15) 10px
+  );
+}
+
+.tile.sunk {
+  background: linear-gradient(145deg, #546e7a, #37474f) !important;
+  color: #90a4ae !important;
+}
+
+.tile.sunk .tile-icon {
+  opacity: 0.5;
+}
+
+/* Wall Progress */
+.wall-progress {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.wall-brick {
+  width: 16px;
+  height: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+}
+
+.wall-brick.filled {
+  background: #8d6e63;
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+
+/* Shield indicator */
+.shield {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 1.2rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* Players on tiles */
+.tile-players {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+}
+
+.player-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Log */
+#log {
+  background: rgba(0,0,0,0.4);
+  border-radius: 12px;
+  padding: 15px;
+  max-height: 150px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+#log::-webkit-scrollbar {
+  width: 8px;
+}
+
+#log::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+#log::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 4px;
+}
+
+.log-entry {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Rules Panel */
+.rules-panel {
+  background: rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.rules-panel h2 {
+  text-align: center;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
+}
+
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.rule-item {
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.rule-item h3 {
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rule-item p {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* Tile selection modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: linear-gradient(135deg, #2d5a7b, #1a3a52);
+  border-radius: 16px;
+  padding: 25px;
+  max-width: 400px;
+  width: 90%;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+
+.modal h3 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.modal-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.modal-tile {
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.modal-tile:hover:not(.disabled) {
+  border-color: white;
+  transform: scale(1.05);
+}
+
+.modal-tile.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.modal-tile.property { background: #4fc3f7; color: #0d47a1; }
+.modal-tile.policy { background: #81c784; color: #1b5e20; }
+.modal-tile.storm { background: #ffb74d; color: #e65100; }
+.modal-tile.flood { background: #e57373; color: #b71c1c; }
+.modal-tile.start { background: #fff176; color: #f57f17; }
+.modal-tile.sunk { background: #546e7a; color: #90a4ae; }
+
+.btn-cancel {
+  width: 100%;
+  padding: 10px;
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cancel:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Setup Modal */
+.setup-modal {
+  max-width: 500px;
+}
+
+.player-setup-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+}
+
+.player-name-input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: rgba(255,255,255,0.9);
+  color: #333;
+}
+
+.color-picker {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.color-option {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.color-option:hover {
+  transform: scale(1.15);
+}
+
+.color-option.selected {
+  border-color: white;
+  box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Player Count Selection */
+.player-count-section {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.player-count-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.player-count-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(0,0,0,0.3);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.player-count-btn:hover {
+  transform: scale(1.1);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.player-count-btn.selected {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: white;
+  box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+}
+
+/* Victory Modal */
+.victory-modal {
+  max-width: 450px;
+  text-align: center;
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border: 3px solid;
+  animation: victoryAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.victory-modal.collective {
+  border-color: #4caf50;
+  box-shadow: 0 0 60px rgba(76, 175, 80, 0.5), 0 0 100px rgba(76, 175, 80, 0.3);
+}
+
+.victory-modal.individual {
+  border-color: #ffc107;
+  box-shadow: 0 0 60px rgba(255, 193, 7, 0.5), 0 0 100px rgba(255, 193, 7, 0.3);
+}
+
+.victory-modal.catastrophe {
+  border-color: #f44336;
+  box-shadow: 0 0 60px rgba(244, 67, 54, 0.5), 0 0 100px rgba(244, 67, 54, 0.3);
+}
+
+@keyframes victoryAppear {
+  0% { transform: scale(0.3) rotateY(90deg); opacity: 0; }
+  50% { transform: scale(1.1) rotateY(-10deg); }
+  100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+}
+
+.victory-icon {
+  font-size: 5rem;
+  margin: 10px 0;
+  animation: victoryBounce 1s ease-in-out infinite;
+}
+
+@keyframes victoryBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-15px) scale(1.1); }
+}
+
+.victory-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.victory-modal.collective .victory-title { color: #4caf50; }
+.victory-modal.individual .victory-title { color: #ffc107; }
+.victory-modal.catastrophe .victory-title { color: #f44336; }
+
+.victory-message {
+  font-size: 1.1rem;
+  margin: 15px 0;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+
+.victory-players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.victory-player {
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.victory-stats {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 10px;
+  margin: 15px 0;
+  font-size: 0.95rem;
+}
+
+.btn-restart {
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+}
+
+.btn-restart:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* Tile Info Modal */
+.tile-info-modal {
+  max-width: 380px;
+}
+
+.tile-info-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.tile-info-icon {
+  font-size: 3rem;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.tile-info-icon.property { background: #4fc3f7; }
+.tile-info-icon.policy { background: #81c784; }
+.tile-info-icon.storm { background: #ffb74d; }
+.tile-info-icon.flood { background: #e57373; }
+.tile-info-icon.start { background: #fff176; }
+
+.tile-info-title {
+  flex: 1;
+}
+
+.tile-info-title h3 {
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+}
+
+.tile-info-title .tile-type-badge {
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.tile-type-badge.property { background: rgba(79,195,247,0.3); color: #81d4fa; }
+.tile-type-badge.policy { background: rgba(129,199,132,0.3); color: #a5d6a7; }
+.tile-type-badge.storm { background: rgba(255,183,77,0.3); color: #ffe082; }
+.tile-type-badge.flood { background: rgba(229,115,115,0.3); color: #ef9a9a; }
+.tile-type-badge.start { background: rgba(255,241,118,0.3); color: #fff59d; }
+
+.tile-info-rules {
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.tile-info-rules h4 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.tile-info-rules ul {
+  list-style: none;
+  padding: 0;
+}
+
+.tile-info-rules li {
+  padding: 6px 0;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.tile-info-rules li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+
+/* Dice animation */
+.dice-result {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 999;
+  text-align: center;
+}
+
+.dice-container {
+  perspective: 800px;
+  margin: 0 auto;
+}
+
+.dice-face-display {
+  font-size: 8rem;
+  width: 140px;
+  height: 140px;
+  line-height: 140px;
+  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  border-radius: 20px;
+  box-shadow: 
+    0 10px 40px rgba(0,0,0,0.5),
+    0 0 60px rgba(255,255,255,0.3),
+    inset 0 2px 10px rgba(255,255,255,0.9),
+    inset 0 -2px 10px rgba(0,0,0,0.1);
+  margin: 0 auto;
+  color: #1a1a2e;
+  transition: all 0.1s ease;
+}
+
+.dice-result.rolling .dice-face-display {
+  animation: diceRoll3D 0.08s ease-in-out infinite;
+  box-shadow: 
+    0 10px 40px rgba(0,0,0,0.5),
+    0 0 80px rgba(255,200,50,0.6),
+    inset 0 2px 10px rgba(255,255,255,0.9);
+}
+
+.dice-result.bounce .dice-face-display {
+  animation: diceBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 15px 50px rgba(0,0,0,0.6),
+    0 0 100px rgba(100,255,100,0.5),
+    inset 0 2px 10px rgba(255,255,255,0.9);
+}
+
+.dice-result.final .dice-face-display {
+  animation: diceFinal 0.5s ease-out forwards;
+}
+
+@keyframes diceRoll3D {
+  0% { 
+    transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg) scale(1);
+  }
+  25% { 
+    transform: rotateX(90deg) rotateY(90deg) rotateZ(45deg) scale(0.95);
+  }
+  50% { 
+    transform: rotateX(180deg) rotateY(180deg) rotateZ(90deg) scale(1.05);
+  }
+  75% { 
+    transform: rotateX(270deg) rotateY(270deg) rotateZ(135deg) scale(0.95);
+  }
+  100% { 
+    transform: rotateX(360deg) rotateY(360deg) rotateZ(180deg) scale(1);
+  }
+}
+
+@keyframes diceBounce {
+  0% { transform: translateY(-80px) rotateZ(-20deg) scale(0.6); opacity: 0.5; }
+  40% { transform: translateY(10px) rotateZ(5deg) scale(1.15); opacity: 1; }
+  60% { transform: translateY(-8px) rotateZ(-2deg) scale(1.05); }
+  80% { transform: translateY(4px) rotateZ(1deg) scale(1.02); }
+  100% { transform: translateY(0) rotateZ(0deg) scale(1); }
+}
+
+@keyframes diceFinal {
+  0% { transform: scale(1) rotateZ(0deg); opacity: 1; }
+  50% { transform: scale(1.2) rotateZ(10deg); opacity: 1; }
+  100% { transform: scale(0.5) rotateZ(-20deg); opacity: 0; }
+}
+
+.dice-player-name {
+  font-size: 1.4rem;
+  text-align: center;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.dice-result-number {
+  font-size: 2rem;
+  margin-top: 15px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  opacity: 0;
+}
+
+.dice-result.bounce .dice-result-number,
+.dice-result.final .dice-result-number {
+  animation: fadeInUp 0.3s ease-out 0.3s forwards;
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+
+#climate-container {
+  background: rgba(0,0,0,0.3);
+  padding: 10px 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.climate-label {
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.climate-bar {
+  height: 20px;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.climate-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #f44336, #ff9800);
+  border-radius: 10px;
+  transition: all 0.5s ease;
+}
+
+.climate-status {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.climate-status.stable {
+  color: #4caf50;
+}
+
+.climate-status.improving {
+  color: #8bc34a;
+}
+
+.climate-status.warning {
+  color: #ff9800;
+}
+
+.climate-status.danger {
+  color: #f44336;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  body { padding: 5px; }
+  
+  h1 { font-size: 1.5rem; padding-top: 40px; }
+  
+  .subtitle { font-size: 0.8rem; margin-bottom: 10px; }
+  
+  #player-panel { padding: 10px; margin-bottom: 10px; }
+  
+  .round-display { font-size: 0.9rem; padding: 6px 15px; }
+  
+  .player-card { 
+    padding: 6px 8px; 
+    min-width: 60px;
+    border-radius: 8px;
+  }
+  .player-card .name { font-size: 0.75rem; }
+  .player-card .money { font-size: 0.95rem; }
+  .player-card .token { width: 12px; height: 12px; margin-bottom: 3px; }
+  
+  .controls { gap: 5px; }
+  .btn { 
+    padding: 8px 6px; 
+    font-size: 0.75rem; 
+    border-radius: 8px;
+    min-height: 40px;
+  }
+  
+  #board { gap: 4px; max-width: 100%; }
+  .tile { 
+    min-height: 55px; 
+    padding: 4px;
+    border-radius: 6px;
+    border-width: 2px;
+  }
+  .board-center {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+  .board-center > div:first-child { font-size: 1.5rem; }
+  .board-center > div:nth-child(2) { font-size: 0.9rem; }
+  .tile-icon { font-size: 1.2rem; }
+  .tile-label { font-size: 0.5rem; }
+  .tile-number { font-size: 0.6rem; top: 1px; left: 2px; }
+  
+  .wall-progress { gap: 2px; }
+  .wall-brick { width: 10px; height: 6px; }
+  
+  .shield { font-size: 0.9rem; top: 1px; right: 2px; }
+  
+  .player-dot { width: 10px; height: 10px; }
+  
+  #log { 
+    max-height: 100px; 
+    font-size: 0.8rem; 
+    padding: 10px;
+  }
+  
+  .rules-panel { padding: 12px; margin-top: 15px; }
+  .rules-panel h2 { font-size: 1.1rem; }
+  .rule-item { padding: 8px; }
+  .rule-item h3 { font-size: 0.85rem; }
+  .rule-item p { font-size: 0.7rem; }
+  
+  .modal { padding: 15px; width: 95%; }
+  .modal h3 { font-size: 1rem; }
+  .modal-tiles { gap: 5px; }
+  .modal-tile { padding: 6px; font-size: 0.75rem; }
+  
+  .setup-modal { max-width: 95%; }
+  .player-count-btn { width: 36px; height: 36px; font-size: 1rem; }
+  .player-setup-row { padding: 8px; gap: 8px; flex-wrap: wrap; }
+  .player-name-input { padding: 8px; font-size: 0.9rem; min-width: 100px; }
+  .color-option { width: 24px; height: 24px; }
+  
+  .dice-face-display { 
+    width: 100px; 
+    height: 100px; 
+    line-height: 100px;
+    font-size: 5rem;
+    border-radius: 15px;
+  }
+  .dice-player-name { font-size: 1.1rem; }
+  .dice-result-number { font-size: 1.5rem; }
+  
+  .victory-modal { max-width: 95%; padding: 20px; }
+  .victory-icon { font-size: 3.5rem; }
+  .victory-title { font-size: 1.5rem; letter-spacing: 2px; }
+  .victory-message { font-size: 0.95rem; }
+  .victory-player { padding: 6px 12px; font-size: 0.85rem; }
+  .victory-stats { padding: 10px; font-size: 0.85rem; }
+  .btn-restart { padding: 12px 30px; font-size: 1rem; }
+  
+  .climate-label { font-size: 0.8rem; }
+  .climate-status { font-size: 0.7rem; }
+}
+
+/* Even smaller screens */
+@media (max-width: 380px) {
+  h1 { font-size: 1.3rem; }
+  .btn { font-size: 0.7rem; padding: 6px 4px; }
+  .tile { min-height: 55px; }
+  .tile-icon { font-size: 1rem; }
+  .tile-label { display: none; }
+  .player-card .name { font-size: 0.7rem; }
+}
+
+/* Landscape phone */
+@media (max-height: 500px) and (orientation: landscape) {
+  .rules-panel { display: none; }
+  #log { max-height: 60px; }
+  h1 { padding-top: 5px; font-size: 1.2rem; }
+  .subtitle { display: none; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Language Toggle -->
+<div class="lang-toggle">
+  <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">🇬🇧 EN</button>
+  <button class="lang-btn" id="lang-fr" onclick="setLanguage('fr')">🇫🇷 FR</button>
+</div>
+
+<div class="game-container">
+  <h1>🌊 <span data-i18n="title">Sink or Sell</span></h1>
+  <p class="subtitle" data-i18n="subtitle">Build, protect, and survive the rising tides!</p>
+
+  <div id="player-panel">
+    <div class="round-display"><span data-i18n="round">Round</span> <span id="round-num">1</span></div>
+    <div id="climate-container">
+      <div class="climate-label">🌍 <span data-i18n="climate">Climate</span>: <span id="climate-value">0</span>/40 <span data-i18n="bricks">bricks</span></div>
+      <div class="climate-bar">
+        <div class="climate-fill" id="climate-fill"></div>
+      </div>
+      <div class="climate-status" id="climate-status">⚠️ <span data-i18n="unstable">Unstable - Crises are severe!</span></div>
+    </div>
+    <div class="players-row" id="players-row"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-buy" id="buyBtn" onclick="buy()">🏠 <span data-i18n="buy">Buy</span> ($2)</button>
+    <button class="btn btn-contribute" id="contributeBtn" onclick="openContributeModal()">🧱 <span data-i18n="addBrick">+1 Brick</span> ($1)</button>
+    <button class="btn btn-build" id="buildBtn" onclick="openBuildWallModal()">🛡️ <span data-i18n="buildWall">Wall</span> ($4)</button>
+    <button class="btn btn-end" id="endBtn" onclick="endTurn()">✅ <span data-i18n="endTurn">End Turn</span></button>
+  </div>
+
+  <div id="board"></div>
+  
+  <div id="log"></div>
+
+  <div class="rules-panel">
+    <h2>📜 <span data-i18n="quickRules">Quick Rules</span></h2>
+    <div class="rules-grid" id="rules-grid">
+      <div class="rule-item">
+        <h3>🎲 Movement</h3>
+        <p>Roll 1 die (1-6). Move clockwise. Pass START = +$2.</p>
+      </div>
+      <div class="rule-item">
+        <h3>🏠 Buy Property</h3>
+        <p>Pay $2 to own. Rent = $1 + $1 per 4 bricks. Flooded = $0.</p>
+      </div>
+      <div class="rule-item">
+        <h3>🧱 Build Walls</h3>
+        <p>$1 = +1 brick. $4 = +4 bricks. 4+ bricks = protected 🛡️</p>
+      </div>
+      <div class="rule-item">
+        <h3>⛈️ Storm</h3>
+        <p>Pick a tile: <b>-2 bricks</b>. No bricks? Dry→Flooded→Sunk.</p>
+      </div>
+      <div class="rule-item">
+        <h3>🌊 Flood</h3>
+        <p>Pick a tile: <b>ALL bricks destroyed!</b> Or damage tile.</p>
+      </div>
+      <div class="rule-item">
+        <h3>� Sunken Tile</h3>
+        <p>Land on sunk? Pay <b>$1</b> OR roll <b>6</b> to escape!</p>
+      </div>
+      <div class="rule-item">
+        <h3>🌍 Climate (total bricks)</h3>
+        <p><b>20+</b>: Storms blocked. <b>30+</b>: Floods -2 only. <b>40</b>: 🌟 WIN!</p>
+      </div>
+      <div class="rule-item">
+        <h3>🏆 Victory</h3>
+        <p>🌟 <b>Collective</b>: 40 bricks!<br>👑 <b>Solo</b>: Last standing</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tile Selection Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Select a Tile</h3>
+    <div class="modal-tiles" id="modal-tiles"></div>
+    <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- Tile Info Modal -->
+<div class="modal-overlay" id="tile-info-modal">
+  <div class="modal tile-info-modal">
+    <div class="tile-info-header">
+      <div class="tile-info-icon" id="tile-info-icon"></div>
+      <div class="tile-info-title">
+        <h3 id="tile-info-name"></h3>
+        <span class="tile-type-badge" id="tile-info-badge"></span>
+      </div>
+    </div>
+    <div class="tile-info-rules">
+      <h4 id="tile-info-rules-title">How it works:</h4>
+      <ul id="tile-info-rules-list"></ul>
+    </div>
+    <button class="btn-cancel" onclick="closeTileInfo()">Close</button>
+  </div>
+</div>
+
+<!-- Dice Result Display -->
+<div class="dice-result" id="dice-result">
+  <div class="dice-player-name" id="dice-player-name"></div>
+  <div class="dice-container">
+    <div class="dice-face-display" id="dice-face"></div>
+  </div>
+  <div class="dice-result-number" id="dice-result-number"></div>
+</div>
+
+<!-- Setup Modal -->
+<div class="modal-overlay active" id="setup-modal">
+  <div class="modal setup-modal">
+    <h3>🎮 <span data-i18n="gameSetup">Game Setup</span></h3>
+    
+    <!-- Player Count Selection -->
+    <div class="player-count-section">
+      <p style="text-align:center; margin-bottom:10px; opacity:0.8;" data-i18n="selectPlayers">Number of Players</p>
+      <div class="player-count-buttons" id="player-count-buttons">
+        <button class="player-count-btn" onclick="setPlayerCount(2)">2</button>
+        <button class="player-count-btn" onclick="setPlayerCount(3)">3</button>
+        <button class="player-count-btn selected" onclick="setPlayerCount(4)">4</button>
+        <button class="player-count-btn" onclick="setPlayerCount(5)">5</button>
+        <button class="player-count-btn" onclick="setPlayerCount(6)">6</button>
+        <button class="player-count-btn" onclick="setPlayerCount(7)">7</button>
+        <button class="player-count-btn" onclick="setPlayerCount(8)">8</button>
+      </div>
+    </div>
+    
+    <p style="text-align:center; margin-bottom:15px; opacity:0.8;" data-i18n="chooseColors">Choose your colors (or leave default)</p>
+    <div id="player-setup"></div>
+    <button class="btn btn-roll" style="width:100%; margin-top:15px;" onclick="startGame()">▶️ <span data-i18n="startGame">Start Game!</span></button>
+  </div>
+</div>
+
+<!-- Victory Modal -->
+<div class="modal-overlay" id="victory-modal">
+  <div class="modal victory-modal" id="victory-content">
+    <div class="victory-icon" id="victory-icon">🏆</div>
+    <div class="victory-title" id="victory-title">VICTORY!</div>
+    <div class="victory-message" id="victory-message"></div>
+    <div class="victory-players" id="victory-players"></div>
+    <div class="victory-stats" id="victory-stats"></div>
+    <button class="btn-restart" onclick="restartGame()">🔄 <span data-i18n="playAgain">Play Again</span></button>
+  </div>
+</div>
+
+<script>
+// ============ TRANSLATIONS ============
+let currentLang = 'en';
+
+const translations = {
+  en: {
+    title: "Sink or Sell",
+    subtitle: "Build, protect, and survive the rising tides!",
+    round: "Round",
+    climate: "Climate",
+    bricks: "bricks",
+    unstable: "Unstable - Crises are severe!",
+    buy: "Buy",
+    addBrick: "+1 Brick",
+    buildWall: "Wall",
+    endTurn: "End",
+    quickRules: "Quick Rules",
+    cancel: "Cancel",
+    gameSetup: "Game Setup",
+    selectPlayers: "Number of Players",
+    chooseColors: "Choose your colors (or leave default)",
+    startGame: "Start Game!",
+    playAgain: "Play Again",
+    player: "Player",
+    // Rules
+    rules: [
+      { icon: "🎲", title: "Movement", desc: "Roll 1 die (1-6). Move clockwise. Pass START = +$2." },
+      { icon: "🏠", title: "Buy Property", desc: "Pay $2 to own. Rent = $1 + $1 per 4 bricks. Flooded = $0." },
+      { icon: "🧱", title: "Build Walls", desc: "$1 = +1 brick. $4 = +4 bricks. 4+ bricks = protected 🛡️" },
+      { icon: "⛈️", title: "Storm", desc: "Pick a tile: <b>-2 bricks</b>. No bricks? Dry→Flooded→Sunk." },
+      { icon: "🌊", title: "Flood", desc: "Pick a tile: <b>ALL bricks destroyed!</b> Or damage tile." },
+      { icon: "🏊", title: "Sunken Tile", desc: "Land on sunk? Pay <b>$1</b> OR roll <b>6</b> to escape!" },
+      { icon: "🌍", title: "Climate", desc: "<b>20+</b>: Storms blocked. <b>30+</b>: Floods -2 only. <b>40</b>: 🌟 WIN!" },
+      { icon: "🏆", title: "Victory", desc: "🌟 <b>Collective</b>: 40 bricks!<br>👑 <b>Solo</b>: Last standing" }
+    ],
+    // Climate statuses
+    climateVictory: "VICTORY! Climate stabilized - EVERYONE WINS!",
+    climateFloodsWeak: "Floods weakened! {n} bricks for COLLECTIVE WIN!",
+    climateStormsBlocked: "Storms BLOCKED! {n} bricks to win!",
+    climateStormsWeak: "Storms weakened. Need {n} more to block!",
+    climateCritical: "CRITICAL! Storms do EXTRA damage! ({n} to stabilize)",
+    // Victory
+    collectiveVictory: "COLLECTIVE VICTORY!",
+    winner: "WINNER!",
+    gameOver: "GAME OVER",
+    allWin: "ALL PLAYERS WIN TOGETHER!",
+    roundsPlayed: "Rounds Played",
+    tilesSunk: "Tiles Sunk",
+    climateStable: "Climate stable",
+    climateInDanger: "Climate in danger",
+    // Tile labels
+    tileLabels: {
+      Start: "Start", Beach: "Beach", Harbor: "Harbor", Resort: "Resort",
+      Village: "Village", Marina: "Marina", Pier: "Pier", Island: "Island",
+      Storm: "Storm", Flood: "Flood", "Town Hall": "Town Hall", Workshop: "Workshop", Depot: "Depot"
+    }
+  },
+  fr: {
+    title: "Couler ou Vendre",
+    subtitle: "Construisez, protégez et survivez aux marées montantes !",
+    round: "Tour",
+    climate: "Climat",
+    bricks: "briques",
+    unstable: "Instable - Crises sévères !",
+    buy: "Acheter",
+    addBrick: "+1 Brique",
+    buildWall: "Mur",
+    endTurn: "Fin",
+    quickRules: "Règles Rapides",
+    cancel: "Annuler",
+    gameSetup: "Configuration",
+    selectPlayers: "Nombre de Joueurs",
+    chooseColors: "Choisissez vos couleurs (ou gardez par défaut)",
+    startGame: "Commencer !",
+    playAgain: "Rejouer",
+    player: "Joueur",
+    // Rules
+    rules: [
+      { icon: "🎲", title: "Déplacement", desc: "Lancez 1 dé (1-6). Sens horaire. Passez DÉPART = +2€." },
+      { icon: "🏠", title: "Acheter", desc: "Payez 2€ pour posséder. Loyer = 1€ + 1€ par 4 briques. Inondé = 0€." },
+      { icon: "🧱", title: "Construire", desc: "1€ = +1 brique. 4€ = +4 briques. 4+ briques = protégé 🛡️" },
+      { icon: "⛈️", title: "Tempête", desc: "Choisissez: <b>-2 briques</b>. Pas de briques? Sec→Inondé→Coulé." },
+      { icon: "🌊", title: "Inondation", desc: "Choisissez: <b>TOUTES les briques détruites!</b> Ou endommager." },
+      { icon: "🏊", title: "Case Coulée", desc: "Atterrir sur coulé? Payez <b>1€</b> OU faites <b>6</b> pour s'échapper!" },
+      { icon: "🌍", title: "Climat", desc: "<b>20+</b>: Tempêtes bloquées. <b>30+</b>: Inondations -2. <b>40</b>: 🌟 VICTOIRE!" },
+      { icon: "🏆", title: "Victoire", desc: "🌟 <b>Collective</b>: 40 briques!<br>👑 <b>Solo</b>: Dernier debout" }
+    ],
+    // Climate statuses
+    climateVictory: "VICTOIRE! Climat stabilisé - TOUT LE MONDE GAGNE!",
+    climateFloodsWeak: "Inondations affaiblies! {n} briques pour VICTOIRE COLLECTIVE!",
+    climateStormsBlocked: "Tempêtes BLOQUÉES! {n} briques pour gagner!",
+    climateStormsWeak: "Tempêtes affaiblies. Besoin de {n} de plus!",
+    climateCritical: "CRITIQUE! Tempêtes font des DÉGÂTS EXTRA! ({n} pour stabiliser)",
+    // Victory
+    collectiveVictory: "VICTOIRE COLLECTIVE!",
+    winner: "GAGNANT!",
+    gameOver: "FIN DE PARTIE",
+    allWin: "TOUS LES JOUEURS GAGNENT ENSEMBLE!",
+    roundsPlayed: "Tours joués",
+    tilesSunk: "Cases coulées",
+    climateStable: "Climat stable",
+    climateInDanger: "Climat en danger",
+    // Tile labels
+    tileLabels: {
+      Start: "Départ", Beach: "Plage", Harbor: "Port", Resort: "Station",
+      Village: "Village", Marina: "Marina", Pier: "Jetée", Island: "Île",
+      Storm: "Tempête", Flood: "Inondation", "Town Hall": "Mairie", Workshop: "Atelier", Depot: "Dépôt"
+    }
+  }
+};
+
+function t(key) {
+  return translations[currentLang][key] || translations['en'][key] || key;
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('lang-fr').classList.toggle('active', lang === 'fr');
+  
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[lang][key]) {
+      el.textContent = translations[lang][key];
+    }
+  });
+  
+  // Update rules
+  renderRules();
+  
+  // Update climate display
+  if (typeof updateClimateDisplay === 'function') {
+    updateClimateDisplay();
+  }
+  
+  // Re-render if game started
+  if (gameStarted) {
+    render();
+  }
+}
+
+function renderRules() {
+  const rulesGrid = document.getElementById('rules-grid');
+  if (!rulesGrid) return;
+  
+  const rules = t('rules');
+  rulesGrid.innerHTML = rules.map(rule => `
+    <div class="rule-item">
+      <h3>${rule.icon} ${rule.title}</h3>
+      <p>${rule.desc}</p>
+    </div>
+  `).join('');
+}
+
+// ============ GAME CODE ============
+const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+
+const COLOR_OPTIONS = [
+  { name: "Red", value: "#e74c3c" },
+  { name: "Blue", value: "#3498db" },
+  { name: "Green", value: "#2ecc71" },
+  { name: "Purple", value: "#9b59b6" },
+  { name: "Orange", value: "#e67e22" },
+  { name: "Pink", value: "#e91e63" },
+  { name: "Cyan", value: "#00bcd4" },
+  { name: "Yellow", value: "#f1c40f" }
+];
+
+let playerCount = 4;
+let players = [];
+
+function initPlayers(count) {
+  players = [];
+  for (let i = 0; i < count; i++) {
+    players.push({
+      name: `${t('player')} ${i + 1}`,
+      color: COLOR_OPTIONS[i].value,
+      money: 5,
+      pos: 0
+    });
+  }
+}
+
+// Initialize with default 4 players
+initPlayers(4);
+
+function setPlayerCount(count) {
+  playerCount = count;
+  initPlayers(count);
+  
+  // Update button selection
+  document.querySelectorAll('.player-count-btn').forEach(btn => {
+    btn.classList.remove('selected');
+    if (parseInt(btn.textContent) === count) {
+      btn.classList.add('selected');
+    }
+  });
+  
+  // Refresh player setup UI
+  initSetup();
+}
+
+let current = 0, rolled = false, round = 1;
+let gameStarted = false;
+let modalCallback = null;
+
+const tileConfig = [
+  { type: "start", icon: "🚀", label: "Start" },
+  { type: "property", icon: "🏠", label: "Beach" },
+  { type: "storm", icon: "⛈️", label: "Storm" },
+  { type: "property", icon: "🏡", label: "Harbor" },
+  { type: "policy", icon: "🏛️", label: "Town Hall" },
+  { type: "property", icon: "🏢", label: "Resort" },
+  { type: "flood", icon: "🌊", label: "Flood" },
+  { type: "property", icon: "🏘️", label: "Village" },
+  { type: "storm", icon: "⛈️", label: "Storm" },
+  { type: "property", icon: "⛵", label: "Marina" },
+  { type: "policy", icon: "🏗️", label: "Workshop" },
+  { type: "property", icon: "🎡", label: "Pier" },
+  { type: "flood", icon: "🌊", label: "Flood" },
+  { type: "property", icon: "🌴", label: "Island" },
+  { type: "storm", icon: "⛈️", label: "Storm" },
+  { type: "policy", icon: "🔧", label: "Depot" }
+];
+
+const tiles = tileConfig.map((cfg, i) => ({
+  ...cfg,
+  owner: null,
+  state: "dry",
+  bricks: 0  // total bricks (4+ = protected)
+}));
+
+function render() {
+  // Update round
+  document.getElementById("round-num").textContent = round;
+  
+  // Update climate stability display
+  updateClimateDisplay();
+  
+  // Update players row
+  const playersRow = document.getElementById("players-row");
+  playersRow.innerHTML = players.map((p, i) => `
+    <div class="player-card ${i === current ? 'active' : ''}" style="border-color: ${i === current ? p.color : 'transparent'}">
+      <div class="token" style="background: ${p.color}"></div>
+      <div class="name" style="color: ${p.color}">${p.name}</div>
+      <div class="money">$${p.money}</div>
+    </div>
+  `).join('');
+
+  // Update board
+  const board = document.getElementById("board");
+  board.innerHTML = tiles.map((t, i) => {
+    const playersHere = players.filter(p => p.pos === i);
+    const ownerStyle = t.owner !== null ? `border-color: ${players[t.owner].color}; box-shadow: 0 0 10px ${players[t.owner].color}40;` : '';
+    
+    return `
+      <div class="tile ${t.type} ${t.state === 'flooded' ? 'flooded' : ''} ${t.state === 'sunk' ? 'sunk' : ''}" data-pos="${i}" onclick="showTileInfo(${i})" style="${ownerStyle}">
+        <span class="tile-number">${i}</span>
+        ${t.bricks >= 4 ? '<span class="shield">🛡️</span>' : ''}
+        <div class="tile-icon">${t.icon}</div>
+        <div class="tile-label">${t.label}</div>
+        ${t.state !== 'dry' ? `<div class="tile-state">${t.state === 'flooded' ? '💧 Flooded' : '💀 Sunk'}</div>` : ''}
+        ${(t.type === 'property' || t.type === 'policy') && t.state !== 'sunk' ? `
+          <div class="wall-progress">
+            ${[0,1,2,3].map(j => `<div class="wall-brick ${j < (t.bricks % 4) || t.bricks >= 4 && j < 4 ? 'filled' : ''}"></div>`).join('')}
+          </div>
+          ${t.bricks > 0 ? `<div style="font-size:0.6rem;">🧱${t.bricks}</div>` : ''}
+        ` : ''}
+        <div class="tile-players">
+          ${playersHere.map(p => `<div class="player-dot" style="background: ${p.color}"></div>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('') + `
+    <div class="board-center">
+      <div style="font-size: 2rem;">🌊</div>
+      <div style="font-size: 1.2rem; font-weight: bold;">Sink or Sell</div>
+      <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;" data-i18n="subtitle">${t('subtitle')}</div>
+    </div>
+  `;
+  
+  // Update button states
+  updateButtons();
+}
+
+function updateButtons() {
+  const p = players[current];
+  const t = tiles[p.pos];
+  
+  // Buy button - need $2, must have rolled, tile must be property, unowned, and dry
+  const canBuy = rolled && t.type === "property" && t.owner === null && t.state === "dry" && p.money >= 2;
+  document.getElementById("buyBtn").disabled = !canBuy;
+  
+  // Contribute button - need $1
+  document.getElementById("contributeBtn").disabled = p.money < 1;
+  
+  // Build wall button - need $4
+  document.getElementById("buildBtn").disabled = p.money < 4;
+}
+
+function log(msg) {
+  const l = document.getElementById("log");
+  l.innerHTML += `<div class="log-entry">${msg}</div>`;
+  l.scrollTop = l.scrollHeight;
+}
+
+function showDice(playerName, playerColor, finalValue, callback) {
+  const dice = document.getElementById("dice-result");
+  const diceFace = document.getElementById("dice-face");
+  const dicePlayerName = document.getElementById("dice-player-name");
+  const diceResultNumber = document.getElementById("dice-result-number");
+  
+  dicePlayerName.textContent = `🎲 ${playerName}'s turn`;
+  dicePlayerName.style.color = playerColor;
+  diceResultNumber.textContent = '';
+  
+  dice.style.display = "block";
+  dice.className = "dice-result rolling";
+  
+  // Rolling animation - faster with fewer rolls
+  let rollCount = 0;
+  const maxRolls = 10;
+  
+  function rollOnce() {
+    diceFace.textContent = DICE_FACES[Math.floor(Math.random() * 6)];
+    rollCount++;
+    
+    if (rollCount < maxRolls) {
+      // Quick rolls that slow down at the end
+      const delay = 40 + (rollCount * 8);
+      setTimeout(rollOnce, delay);
+    } else {
+      // Show final result with bounce
+      diceFace.textContent = DICE_FACES[finalValue - 1];
+      dice.className = "dice-result bounce";
+      diceResultNumber.textContent = `Rolled a ${finalValue}!`;
+      
+      // Fade out faster
+      setTimeout(() => {
+        dice.className = "dice-result final";
+        
+        setTimeout(() => {
+          dice.style.display = "none";
+          dice.className = "dice-result";
+          if (callback) callback();
+        }, 400);
+      }, 700);
+    }
+  }
+  
+  rollOnce();
+}
+
+function autoRoll() {
+  if (rolled) return;
+  rolled = true;
+  
+  const rollValue = Math.floor(Math.random() * 6) + 1;
+  const p = players[current];
+  
+  // Disable buttons during roll
+  document.getElementById("buyBtn").disabled = true;
+  document.getElementById("contributeBtn").disabled = true;
+  document.getElementById("buildBtn").disabled = true;
+  document.getElementById("endBtn").disabled = true;
+  
+  showDice(p.name, p.color, rollValue, () => {
+    const oldPos = p.pos;
+    p.pos = (p.pos + rollValue) % 16;
+    
+    if (oldPos > p.pos || (oldPos + rollValue >= 16)) {
+      p.money += 2;
+      log(`✨ ${p.name} passes START and earns $2!`);
+    }
+    
+    log(`🎲 ${p.name} rolls ${rollValue} → moves to tile ${p.pos} (${tiles[p.pos].label})`);
+    
+    resolve();
+    render();
+    
+    // Re-enable end turn button
+    document.getElementById("endBtn").disabled = false;
+  });
+}
+
+function resolve() {
+  const p = players[current];
+  const t = tiles[p.pos];
+  const climate = getClimateStability();
+
+  // Storm tile - effect depends on climate!
+  if (t.type === "storm") {
+    if (climate >= 12) {
+      // Climate is stable enough - storm is prevented!
+      log(`⛈️ ${p.name} lands on Storm, but 🌍 CLIMATE IS STABLE! The storm passes harmlessly.`);
+      log(`🟢 Collective walls protect the coast!`);
+      render();
+      return;
+    } else if (climate >= 8) {
+      // Weakened storm - only targets unprotected tiles
+      log(`⛈️ Weakened storm! (🌍 Climate ${climate}/12 needed to prevent)`);
+      openStormModal();
+      return;
+    } else {
+      // Full storm + extra damage at very low climate
+      if (climate < 4) {
+        log(`💥 SEVERE STORM! (🌍 Climate too low - crisis intensified!)`);
+      }
+      openStormModal();
+      return;
+    }
+  }
+  
+  // Flood tile - effect depends on climate!
+  if (t.type === "flood") {
+    if (climate >= 15) {
+      // Climate very stable - flood becomes just a storm
+      log(`🌊 ${p.name} lands on Flood, but 🌍 CLIMATE IS VERY STABLE!`);
+      log(`🟢 The flood is reduced to a minor storm.`);
+      openStormModal(); // Downgraded to storm!
+      return;
+    } else if (climate >= 10) {
+      // Weakened flood - only destroys 1 layer instead of all
+      log(`🌊 Weakened flood! (🌍 Climate reduces damage)`);
+      openWeakFloodModal();
+      return;
+    } else {
+      // Full devastating flood
+      if (climate < 4) {
+        log(`💥 CATASTROPHIC FLOOD! (🌍 Climate too low!)`);
+      }
+      openFloodModal();
+      return;
+    }
+  }
+
+  // Policy tiles - special effects!
+  if (t.type === "policy") {
+    if (t.label === "Town Hall") {
+      log(`🏛️ ${p.name} visits Town Hall - choose a tile to add 1 FREE brick!`);
+      openFreeBrickModal();
+      return;
+    } else if (t.label === "Workshop") {
+      p.money += 1;
+      log(`🏗️ ${p.name} visits Workshop and earns +$1 bonus!`);
+    } else if (t.label === "Depot") {
+      // Check if there are flooded tiles to repair
+      const floodedTiles = tiles.filter(tile => tile.state === "flooded");
+      if (floodedTiles.length > 0) {
+        log(`🔧 ${p.name} visits Depot - choose a flooded tile to repair!`);
+        openRepairModal();
+        return;
+      } else {
+        log(`🔧 ${p.name} visits Depot, but no flooded tiles to repair.`);
+      }
+    }
+  }
+
+  // Sunken tile - player must pay $1 OR roll a 6 to escape!
+  if (t.state === "sunk") {
+    log(`🌊 ${p.name} falls into the sunken ruins of ${t.label}!`);
+    openRescueModal();
+    return;
+  }
+
+  // Pay rent based on tile state and bricks
+  if (t.owner !== null && t.owner !== current) {
+    if (t.state === "dry") {
+      // Rent = $1 base + $1 per 4 bricks
+      const wallBonus = Math.floor(t.bricks / 4);
+      const rent = 1 + wallBonus;
+      p.money = Math.max(0, p.money - rent);
+      players[t.owner].money += rent;
+      if (wallBonus > 0) {
+        log(`💸 ${p.name} pays $${rent} rent to ${players[t.owner].name} (base $1 + ${wallBonus} wall bonus)`);
+      } else {
+        log(`💸 ${p.name} pays $1 rent to ${players[t.owner].name}`);
+      }
+    } else if (t.state === "flooded") {
+      // No rent on flooded property
+      log(`💧 ${p.name} lands on flooded ${t.label} - no rent due! (property damaged)`);
+    }
+  }
+  
+  render();
+}
+
+function buy() {
+  const p = players[current];
+  const t = tiles[p.pos];
+  
+  if (!rolled || t.type !== "property" || t.owner !== null || t.state !== "dry" || p.money < 2) return;
+  
+  p.money -= 2;
+  t.owner = current;
+  log(`🏠 ${p.name} buys ${t.label} (tile ${p.pos}) for $2`);
+  render();
+}
+
+function openContributeModal() {
+  const p = players[current];
+  if (p.money < 1) return;
+  
+  document.getElementById("modal-title").textContent = "🧱 Add 1 brick ($1)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    // Can't add to start, storm, flood, or sunk
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectContribute(${i})`}">
+        <strong>${i}</strong><br>🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectContribute(tileIndex) {
+  const p = players[current];
+  const t = tiles[tileIndex];
+  
+  p.money -= 1;
+  t.bricks++;
+  
+  if (t.bricks === 4) {
+    log(`🧱 ${p.name} adds brick to ${t.label} - now PROTECTED! 🛡️ (${t.bricks} bricks)`);
+  } else {
+    log(`🧱 ${p.name} adds brick to ${t.label} (${t.bricks} bricks)`);
+  }
+  
+  closeModal();
+  render();
+  checkWinCondition(); // Check for collective victory
+}
+
+function openFreeBrickModal() {
+  document.getElementById("modal-title").textContent = "🏛️ Town Hall: Add 1 FREE brick to any tile";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectFreeBrick(${i})`}">
+        <strong>${i}</strong><br>🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectFreeBrick(tileIndex) {
+  const p = players[current];
+  const t = tiles[tileIndex];
+  
+  t.bricks++;
+  
+  if (t.bricks === 4) {
+    log(`🏛️ ${p.name} adds FREE brick to ${t.label} - now PROTECTED! 🛡️ (${t.bricks} bricks)`);
+  } else {
+    log(`🏛️ ${p.name} adds FREE brick to ${t.label} (${t.bricks} bricks)`);
+  }
+  
+  closeModal();
+  checkWinCondition(); // Check for collective victory;
+  
+  // Continue with rent check
+  const currentTile = tiles[p.pos];
+  if (currentTile.owner !== null && currentTile.owner !== current && currentTile.state === "dry") {
+    const wallBonus = Math.floor(currentTile.bricks / 4);
+    const rent = 1 + wallBonus;
+    p.money = Math.max(0, p.money - rent);
+    players[currentTile.owner].money += rent;
+    log(`💸 ${p.name} pays $${rent} rent to ${players[currentTile.owner].name}`);
+  }
+  
+  render();
+}
+
+function openBuildWallModal() {
+  const p = players[current];
+  if (p.money < 4) return;
+  
+  document.getElementById("modal-title").textContent = "🛡️ Build wall (+4 bricks for $4)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    // Can't build on start, storm, flood, or sunk
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectBuildWall(${i})`}">
+        <strong>${i}</strong><br>🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectBuildWall(tileIndex) {
+  const p = players[current];
+  const t = tiles[tileIndex];
+  
+  p.money -= 4;
+  t.bricks += 4;
+  
+  log(`🛡️ ${p.name} builds wall on ${t.label} for $4! (${t.bricks} bricks total)`);
+  
+  closeModal();
+  render();
+}
+
+function openRepairModal() {
+  document.getElementById("modal-title").textContent = "🔧 Depot: Choose a flooded tile to repair (FREE)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    const disabled = t.state !== "flooded";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectRepair(${i})`}">
+        <strong>${i}</strong><br>${t.state === 'flooded' ? '💧' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectRepair(tileIndex) {
+  const p = players[current];
+  const t = tiles[tileIndex];
+  
+  t.state = "dry";
+  t.bricks++; // Bonus brick for repairing
+  log(`🔧 ${p.name} repairs ${t.label} - it's DRY again! (+1 brick bonus, now ${t.bricks})`);
+  
+  closeModal();
+  checkWinCondition(); // Check for collective victory;
+  
+  // Continue with rent check
+  const currentTile = tiles[p.pos];
+  if (currentTile.owner !== null && currentTile.owner !== current && currentTile.state === "dry") {
+    const wallBonus = Math.floor(currentTile.bricks / 4);
+    const rent = 1 + wallBonus;
+    p.money = Math.max(0, p.money - rent);
+    players[currentTile.owner].money += rent;
+    log(`💸 ${p.name} pays $${rent} rent to ${players[currentTile.owner].name}`);
+  }
+  
+  render();
+}
+
+// Rescue modal for sunken tiles - pay $1 or roll 6
+function openRescueModal() {
+  const p = players[current];
+  const canPay = p.money >= 1;
+  
+  document.getElementById("modal-title").textContent = "🏊 RESCUE! Pay $1 or roll a 6 to escape!";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 15px; padding: 20px; width: 100%;">
+      <div style="text-align: center; font-size: 1.2rem; margin-bottom: 10px;">
+        💀 You're trapped in sunken ruins!
+      </div>
+      <button class="btn btn-buy" style="padding: 20px; font-size: 1.3rem; ${!canPay ? 'opacity: 0.4; cursor: not-allowed;' : ''}" 
+              onclick="${canPay ? 'selectRescuePay()' : ''}" ${!canPay ? 'disabled' : ''}>
+        💰 Pay $1 to escape
+      </button>
+      <div style="text-align: center; font-size: 1rem; color: #aaa;">— OR —</div>
+      <button class="btn btn-roll" style="padding: 20px; font-size: 1.3rem;" onclick="selectRescueRoll()">
+        🎲 Roll dice (need a 6!)
+      </button>
+      ${!canPay ? '<div style="text-align: center; color: #ff6b6b; font-size: 0.9rem;">⚠️ No money - you must roll!</div>' : ''}
+    </div>
+  `;
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectRescuePay() {
+  const p = players[current];
+  p.money -= 1;
+  log(`💰 ${p.name} pays $1 to escape the ruins!`);
+  closeModal();
+  render();
+}
+
+function selectRescueRoll() {
+  closeModal();
+  const p = players[current];
+  const rollValue = Math.floor(Math.random() * 6) + 1;
+  
+  showDice(p.name + " (Rescue!)", "#ff6b6b", rollValue, () => {
+    if (rollValue === 6) {
+      log(`🎲 ${p.name} rolls a ${rollValue}! 🎉 ESCAPED FOR FREE!`);
+    } else {
+      log(`🎲 ${p.name} rolls a ${rollValue}... Still trapped! 💀`);
+      // Player loses their turn but doesn't lose money
+    }
+    render();
+  });
+}
+
+function openStormModal() {
+  document.getElementById("modal-title").textContent = "⛈️ STORM! Select a tile (-2 bricks)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    // Can't target start, storm, flood, or already sunk
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectStorm(${i})`}">
+        <strong>${i}</strong><br>
+        🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : t.state === 'flooded' ? '💧' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectStorm(tileIndex) {
+  const t = tiles[tileIndex];
+  const climate = getClimateStability();
+  
+  // Storm removes 2 bricks
+  if (t.bricks > 0) {
+    const damage = Math.min(2, t.bricks);
+    t.bricks -= damage;
+    log(`⛈️ Storm hits ${t.label} - ${damage} brick${damage > 1 ? 's' : ''} destroyed! (${t.bricks} remain)`);
+    if (t.bricks < 4 && t.bricks >= 0) {
+      log(`⚠️ ${t.label} is no longer fully protected!`);
+    }
+  } else if (t.state === "dry") {
+    t.state = "flooded";
+    log(`⛈️ Storm floods ${t.label}!`);
+    // At low climate, extra damage
+    if (climate < 8) {
+      const wallTiles = tiles.filter(tile => tile.bricks > 0);
+      if (wallTiles.length > 0) {
+        const randomTile = wallTiles[Math.floor(Math.random() * wallTiles.length)];
+        randomTile.bricks--;
+        log(`💨 Severe winds also damage 1 brick on ${randomTile.label}!`);
+      }
+    }
+  } else if (t.state === "flooded") {
+    t.state = "sunk";
+    t.owner = null;
+    t.bricks = 0;
+    log(`💀 Storm sinks ${t.label}! It's destroyed forever.`);
+  }
+  
+  closeModal();
+  finishTurnAfterCrisis();
+}
+
+function openFloodModal() {
+  document.getElementById("modal-title").textContent = "🌊 FLOOD! Select a tile (ALL bricks destroyed!)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    // Can't target start, storm, flood, or already sunk
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectFlood(${i})`}">
+        <strong>${i}</strong><br>
+        🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : t.state === 'flooded' ? '💧' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function openWeakFloodModal() {
+  document.getElementById("modal-title").textContent = "🌊 Weakened Flood (-2 bricks only)";
+  const modalTiles = document.getElementById("modal-tiles");
+  
+  modalTiles.innerHTML = tiles.map((t, i) => {
+    const disabled = t.type === "start" || t.type === "storm" || t.type === "flood" || t.state === "sunk";
+    const ownerColor = t.owner !== null ? players[t.owner].color : null;
+    const ownerStyle = ownerColor ? `background: ${ownerColor}; color: white; border: 3px solid ${ownerColor};` : '';
+    const ownerName = t.owner !== null ? players[t.owner].name : '';
+    return `
+      <div class="modal-tile ${t.type} ${t.state === 'sunk' ? 'sunk' : ''} ${disabled ? 'disabled' : ''}" 
+           style="${ownerStyle}"
+           onclick="${disabled ? '' : `selectWeakFlood(${i})`}">
+        <strong>${i}</strong><br>
+        🧱${t.bricks} ${t.bricks >= 4 ? '🛡️' : t.state === 'flooded' ? '💧' : ''}
+        ${ownerName ? `<br><small>${ownerName}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+  
+  document.getElementById("modal").classList.add("active");
+}
+
+function selectWeakFlood(tileIndex) {
+  const t = tiles[tileIndex];
+  
+  // Weakened flood only removes 2 bricks (like a storm)
+  if (t.bricks > 0) {
+    const damage = Math.min(2, t.bricks);
+    t.bricks -= damage;
+    log(`🌊 Weakened flood hits ${t.label} - ${damage} brick${damage > 1 ? 's' : ''} destroyed! (🌍 Climate helped!)`);
+  } else if (t.state === "dry") {
+    t.state = "flooded";
+    log(`🌊 Flood hits ${t.label} - now FLOODED!`);
+  } else if (t.state === "flooded") {
+    t.state = "sunk";
+    t.owner = null;
+    log(`💀 Flood sinks ${t.label}!`);
+  }
+  
+  closeModal();
+  finishTurnAfterCrisis();
+}
+
+function selectFlood(tileIndex) {
+  const t = tiles[tileIndex];
+  
+  // Floods DESTROY ALL bricks!
+  if (t.bricks > 0) {
+    const lost = t.bricks;
+    t.bricks = 0;
+    log(`🌊 FLOOD destroys ALL ${lost} bricks on ${t.label}! 💔`);
+  } else if (t.state === "dry") {
+    t.state = "flooded";
+    log(`🌊 Flood hits ${t.label} - now FLOODED!`);
+  } else if (t.state === "flooded") {
+    t.state = "sunk";
+    t.owner = null;
+    log(`💀 Flood sinks ${t.label}! It's destroyed forever.`);
+  }
+  
+  closeModal();
+  finishTurnAfterCrisis();
+}
+
+function finishTurnAfterCrisis() {
+  // Continue with rent check (rent = $1 base + $1 per 4 bricks)
+  const p = players[current];
+  const t = tiles[p.pos];
+  if (t.owner !== null && t.owner !== current && t.state === "dry") {
+    const wallBonus = Math.floor(t.bricks / 4);
+    const rent = 1 + wallBonus;
+    p.money = Math.max(0, p.money - rent);
+    players[t.owner].money += rent;
+    if (wallBonus > 0) {
+      log(`💸 ${p.name} pays $${rent} rent to ${players[t.owner].name} (base $1 + ${wallBonus} wall bonus)`);
+    } else {
+      log(`💸 ${p.name} pays $1 rent to ${players[t.owner].name}`);
+    }
+  }
+  
+  render();
+}
+
+function closeModal() {
+  document.getElementById("modal").classList.remove("active");
+}
+
+// Tile Info descriptions by type
+const tileInfoRules = {
+  en: {
+    start: [
+      "All players begin here",
+      "Pass or land here = Earn $2",
+      "Safe from all flood effects"
+    ],
+    property: [
+      "Buy for $2 to own it",
+      "Rent: $1 (dry) or $0 (flooded)",
+      "+$1 rent per 4 bricks (protected)",
+      "Build bricks to protect from floods"
+    ],
+    policy: [
+      "Cannot be bought - public building",
+      "Town Hall: Free +1 brick",
+      "Workshop: Earn +$1",
+      "Depot: Free +2 bricks",
+      "Can be protected with bricks"
+    ],
+    storm: [
+      "Pick ANY tile on the board",
+      "Remove 2 bricks from that tile",
+      "No bricks? Dry becomes Flooded",
+      "If 20+ total bricks: Storm BLOCKED!"
+    ],
+    flood: [
+      "Pick ANY tile on the board",
+      "Remove ALL bricks from that tile",
+      "Or: Flooded tile becomes SUNK",
+      "If 30+ total bricks: Only -2 bricks"
+    ]
+  },
+  fr: {
+    start: [
+      "Tous les joueurs commencent ici",
+      "Passer ou atterrir = Gagner 2€",
+      "Protégé contre les inondations"
+    ],
+    property: [
+      "Acheter pour 2€",
+      "Loyer: 1€ (sec) ou 0€ (inondé)",
+      "+1€ loyer par 4 briques (protégé)",
+      "Construire des briques pour protéger"
+    ],
+    policy: [
+      "Ne peut pas être acheté - bâtiment public",
+      "Mairie: +1 brique gratuite",
+      "Atelier: Gagner +1€",
+      "Dépôt: +2 briques gratuites",
+      "Peut être protégé avec des briques"
+    ],
+    storm: [
+      "Choisir N'IMPORTE quelle case",
+      "Retirer 2 briques de cette case",
+      "Pas de briques? Sec devient Inondé",
+      "Si 20+ briques: Tempête BLOQUÉE!"
+    ],
+    flood: [
+      "Choisir N'IMPORTE quelle case",
+      "Retirer TOUTES les briques",
+      "Ou: Case inondée devient COULÉE",
+      "Si 30+ briques: Seulement -2 briques"
+    ]
+  }
+};
+
+function showTileInfo(index) {
+  const tile = tiles[index];
+  const modal = document.getElementById("tile-info-modal");
+  const icon = document.getElementById("tile-info-icon");
+  const name = document.getElementById("tile-info-name");
+  const badge = document.getElementById("tile-info-badge");
+  const rulesList = document.getElementById("tile-info-rules-list");
+  const rulesTitle = document.getElementById("tile-info-rules-title");
+  
+  // Set icon
+  icon.innerHTML = tile.icon;
+  icon.className = `tile-info-icon ${tile.type}`;
+  
+  // Set name and badge
+  name.textContent = tile.label;
+  badge.textContent = tile.type.charAt(0).toUpperCase() + tile.type.slice(1);
+  badge.className = `tile-type-badge ${tile.type}`;
+  
+  // Set rules
+  rulesTitle.textContent = currentLang === 'en' ? 'How it works:' : 'Comment ça marche:';
+  const rules = tileInfoRules[currentLang][tile.type] || [];
+  rulesList.innerHTML = rules.map(rule => `<li>${rule}</li>`).join('');
+  
+  // Add current tile status if property or policy
+  if (tile.type === 'property' || tile.type === 'policy') {
+    let status = [];
+    if (tile.owner !== null) {
+      status.push(`<li style="color: ${players[tile.owner].color}">${currentLang === 'en' ? 'Owner' : 'Propriétaire'}: ${players[tile.owner].name}</li>`);
+    }
+    if (tile.bricks > 0) {
+      status.push(`<li>🧱 ${tile.bricks} ${currentLang === 'en' ? 'bricks' : 'briques'} ${tile.bricks >= 4 ? '(🛡️ Protected)' : ''}</li>`);
+    }
+    if (tile.state !== 'dry') {
+      status.push(`<li>${tile.state === 'flooded' ? '💧 Flooded' : '💀 Sunk'}</li>`);
+    }
+    if (status.length > 0) {
+      rulesList.innerHTML += `<li style="border-top: 1px solid rgba(255,255,255,0.2); margin-top: 8px; padding-top: 8px;"><b>${currentLang === 'en' ? 'Current Status' : 'État actuel'}:</b></li>` + status.join('');
+    }
+  }
+  
+  modal.classList.add("active");
+}
+
+function closeTileInfo() {
+  document.getElementById("tile-info-modal").classList.remove("active");
+}
+
+function endTurn() {
+  rolled = false;
+  current = (current + 1) % players.length;
+  
+  // New round when back to player 1
+  if (current === 0) {
+    round++;
+    log(`<br>═══════════ ROUND ${round} ═══════════`);
+    
+    // Income phase
+    players.forEach((p, i) => {
+      let income = 1; // Base income
+      tiles.forEach(t => {
+        if (t.owner === i && t.state === "dry") income++;
+      });
+      p.money += income;
+      log(`💰 ${p.name} earns $${income} income`);
+    });
+  }
+  
+  // Check win condition - last player with money or properties wins
+  checkWinCondition();
+  
+  render();
+  
+  // Auto-roll for next player after a short delay
+  setTimeout(() => {
+    if (gameStarted && !checkGameOver()) {
+      autoRoll();
+    }
+  }, 500);
+}
+
+function getClimateStability() {
+  // Total bricks across all tiles
+  return tiles.reduce((sum, t) => sum + t.bricks, 0);
+}
+
+function getSunkCount() {
+  return tiles.filter(t => t.state === "sunk").length;
+}
+
+function updateClimateDisplay() {
+  const climate = getClimateStability();
+  const fill = document.getElementById("climate-fill");
+  const status = document.getElementById("climate-status");
+  const value = document.getElementById("climate-value");
+  
+  value.textContent = climate;
+  fill.style.width = `${Math.min(100, climate * 2.5)}%`; // 40 = 100%
+  
+  if (climate >= 40) {
+    fill.style.background = "linear-gradient(90deg, #4caf50, #00e676)";
+    status.textContent = "🌟 " + t('climateVictory');
+    status.className = "climate-status stable";
+  } else if (climate >= 30) {
+    fill.style.background = "linear-gradient(90deg, #4caf50, #8bc34a)";
+    status.textContent = "🌊 " + t('climateFloodsWeak').replace('{n}', 40 - climate);
+    status.className = "climate-status stable";
+  } else if (climate >= 20) {
+    fill.style.background = "linear-gradient(90deg, #8bc34a, #cddc39)";
+    status.textContent = "🛡️ " + t('climateStormsBlocked').replace('{n}', 40 - climate);
+    status.className = "climate-status stable";
+  } else if (climate >= 8) {
+    fill.style.background = "linear-gradient(90deg, #ffeb3b, #ff9800)";
+    status.textContent = "⛈️ " + t('climateStormsWeak').replace('{n}', 20 - climate);
+    status.className = "climate-status warning";
+  } else {
+    fill.style.background = "linear-gradient(90deg, #f44336, #b71c1c)";
+    status.textContent = "💥 " + t('climateCritical').replace('{n}', 8 - climate);
+    status.className = "climate-status danger";
+  }
+}
+
+function checkGameOver() {
+  // Collective win - climate stabilized!
+  if (getClimateStability() >= 40) return true;
+  
+  // All players bankrupt = game over
+  const alivePlayers = players.filter((p, i) => {
+    const ownsDryProperty = tiles.some(t => t.owner === i && t.state === "dry");
+    return p.money > 0 || ownsDryProperty;
+  });
+  return alivePlayers.length <= 1;
+}
+
+function checkWinCondition() {
+  const climate = getClimateStability();
+  const sunkCount = getSunkCount();
+  
+  // COLLECTIVE WIN - Climate fully stabilized!
+  if (climate >= 40) {
+    log(`<br>🌟🌍🌟 COLLECTIVE VICTORY! 🌟🌍🌟`);
+    log(`With ${climate} bricks, the climate is FULLY STABILIZED!`);
+    showVictoryModal('collective', null, climate, sunkCount);
+    endGame();
+    return;
+  }
+  
+  // Check if all tiles are sunk (catastrophe) - with 7 properties, 5 sunk is catastrophic
+  if (sunkCount >= 5) {
+    log(`<br>💥🌊 CATASTROPHE! ${sunkCount} tiles have sunk!`);
+    showVictoryModal('catastrophe', null, climate, sunkCount);
+    endGame();
+    return;
+  }
+  
+  // Check if only one player remains
+  const alivePlayers = players.filter((p, i) => {
+    const ownsDryProperty = tiles.some(t => t.owner === i && t.state === "dry");
+    return p.money > 0 || ownsDryProperty;
+  });
+  
+  if (alivePlayers.length === 1) {
+    const winner = alivePlayers[0];
+    log(`<br>🏆 ${winner.name} is the last one standing with $${winner.money}!`);
+    showVictoryModal('individual', winner, climate, sunkCount);
+    endGame();
+  } else if (alivePlayers.length === 0) {
+    log(`<br>💥 Everyone is bankrupt! The climate wins.`);
+    showVictoryModal('catastrophe', null, climate, sunkCount);
+    endGame();
+  }
+}
+
+function endGame() {
+  document.getElementById("buyBtn").disabled = true;
+  document.getElementById("contributeBtn").disabled = true;
+  document.getElementById("buildBtn").disabled = true;
+  document.getElementById("endBtn").disabled = true;
+  gameStarted = false;
+}
+
+function showVictoryModal(type, winner, climate, sunkCount) {
+  const modal = document.getElementById("victory-modal");
+  const content = document.getElementById("victory-content");
+  const icon = document.getElementById("victory-icon");
+  const title = document.getElementById("victory-title");
+  const message = document.getElementById("victory-message");
+  const playersDiv = document.getElementById("victory-players");
+  const stats = document.getElementById("victory-stats");
+  
+  content.className = `modal victory-modal ${type}`;
+  
+  const bricksWord = t('bricks');
+  
+  if (type === 'collective') {
+    icon.textContent = '🌍';
+    title.textContent = t('collectiveVictory');
+    message.innerHTML = currentLang === 'fr' 
+      ? `Avec <strong>${climate} briques</strong>, le climat est STABILISÉ!<br>Les tempêtes et inondations ne menacent plus la côte.`
+      : `With <strong>${climate} bricks</strong>, the climate is FULLY STABILIZED!<br>Storms and floods no longer threaten the coast.`;
+    playersDiv.innerHTML = players.map(p => 
+      `<div class="victory-player" style="background: ${p.color}; color: white;">
+        🏆 ${p.name} - $${p.money}
+      </div>`
+    ).join('');
+    stats.innerHTML = `
+      <div>🌍 Total: <strong>${climate} ${bricksWord}</strong></div>
+      <div>📅 ${t('roundsPlayed')}: <strong>${round}</strong></div>
+      <div>🎉 ${t('allWin')}</div>
+    `;
+  } else if (type === 'individual') {
+    icon.textContent = '👑';
+    title.textContent = t('winner');
+    message.innerHTML = currentLang === 'fr'
+      ? `<strong>${winner.name}</strong> est le dernier debout!`
+      : `<strong>${winner.name}</strong> is the last one standing!`;
+    playersDiv.innerHTML = `
+      <div class="victory-player" style="background: ${winner.color}; color: white; font-size: 1.2rem; padding: 12px 25px;">
+        👑 ${winner.name} - $${winner.money}
+      </div>
+    `;
+    const climateMsg = climate >= 20 ? `🌍 ${t('climateStable')} (${climate} ${bricksWord})` : 
+                       climate < 8 ? `⚠️ ${t('climateInDanger')} (${climate} ${bricksWord})` : 
+                       `🌍 ${t('climate')}: ${climate} ${bricksWord}`;
+    stats.innerHTML = `
+      <div>${climateMsg}</div>
+      <div>📅 ${t('roundsPlayed')}: <strong>${round}</strong></div>
+      <div>💀 ${t('tilesSunk')}: <strong>${sunkCount}</strong></div>
+    `;
+  } else { // catastrophe
+    icon.textContent = '💀';
+    title.textContent = t('gameOver');
+    message.innerHTML = sunkCount >= 5 
+      ? (currentLang === 'fr' 
+        ? `<strong>${sunkCount} cases</strong> ont coulé!<br>La côte est détruite. Tout le monde perd.`
+        : `<strong>${sunkCount} tiles</strong> have sunk!<br>The coast is destroyed. Everyone loses.`)
+      : (currentLang === 'fr'
+        ? `Tout le monde est en faillite!<br>Le climat gagne cette manche.`
+        : `Everyone is bankrupt!<br>The climate wins this round.`);
+    playersDiv.innerHTML = players.map(p => 
+      `<div class="victory-player" style="background: rgba(255,255,255,0.1); color: #999;">
+        💀 ${p.name} - $${p.money}
+      </div>`
+    ).join('');
+    stats.innerHTML = `
+      <div>🌍 ${t('climate')}: <strong>${climate} ${bricksWord}</strong></div>
+      <div>📅 ${t('roundsPlayed')}: <strong>${round}</strong></div>
+      <div>💀 ${t('tilesSunk')}: <strong>${sunkCount}</strong></div>
+    `;
+  }
+  
+  setTimeout(() => {
+    modal.classList.add("active");
+  }, 500);
+}
+
+function restartGame() {
+  // Hide victory modal
+  document.getElementById("victory-modal").classList.remove("active");
+  
+  // Reset players
+  players.forEach((p, i) => {
+    p.money = 5;
+    p.pos = 0;
+  });
+  
+  // Reset tiles
+  tiles.forEach(t => {
+    t.owner = null;
+    t.state = "dry";
+    t.bricks = 0;
+  });
+  
+  // Reset game state
+  current = 0;
+  rolled = false;
+  round = 1;
+  gameStarted = false;
+  
+  // Clear log
+  document.getElementById("log").innerHTML = '';
+  
+  // Show setup modal
+  document.getElementById("setup-modal").classList.add("active");
+  initSetup();
+}
+
+// Setup screen
+function initSetup() {
+  const setupDiv = document.getElementById("player-setup");
+  const playerWord = t('player');
+  setupDiv.innerHTML = players.map((p, i) => `
+    <div class="player-setup-row">
+      <input type="text" class="player-name-input" id="name-${i}" value="${p.name}" placeholder="${playerWord} ${i+1}">
+      <div class="color-picker">
+        ${COLOR_OPTIONS.map(c => `
+          <div class="color-option ${p.color === c.value ? 'selected' : ''}" 
+               style="background: ${c.value}" 
+               onclick="selectColor(${i}, '${c.value}')" 
+               data-player="${i}" data-color="${c.value}"></div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectColor(playerIndex, color) {
+  // Check if color is already taken
+  const taken = players.some((p, i) => i !== playerIndex && p.color === color);
+  if (taken) {
+    alert(currentLang === 'fr' ? "Cette couleur est déjà prise!" : "This color is already taken!");
+    return;
+  }
+  
+  players[playerIndex].color = color;
+  initSetup(); // Refresh to show selection
+}
+
+function startGame() {
+  // Update player names
+  players.forEach((p, i) => {
+    const nameInput = document.getElementById(`name-${i}`);
+    if (nameInput.value.trim()) {
+      p.name = nameInput.value.trim();
+    }
+  });
+  
+  // Hide setup modal
+  document.getElementById("setup-modal").classList.remove("active");
+  gameStarted = true;
+  
+  // Start game
+  render();
+  log("🎮 Game started!");
+  log("🏆 Build 40 bricks together = EVERYONE WINS!");
+  log("⛈️ Storm: -2 bricks | 🌊 Flood: ALL bricks gone");
+  log("🌍 Climate 20+: storms blocked | 30+: floods weakened");
+  
+  // Auto-roll for first player
+  setTimeout(() => autoRoll(), 800);
+}
+
+// Initialize setup
+initSetup();
+renderRules();
+render();
+</script>
+
+</body>
+</html>
+
+
